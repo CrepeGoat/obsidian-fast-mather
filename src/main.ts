@@ -20,7 +20,7 @@ import {
 	getContextBoundsAtSelection,
 	getMajorType,
 	MajorContextTypes,
-} from "context";
+} from "src/context";
 
 interface FastMatherSettings {
 	mySetting: string;
