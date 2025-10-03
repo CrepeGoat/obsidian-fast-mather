@@ -168,7 +168,12 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 			}
 
 			let last_bound_text = result[result.length - 1]?.text(doc);
-			if (last_bound_text === "$$" && bound_text === "$") {
+			let last_bound_type = result[result.length - 1]?.type;
+			if (
+				last_bound_text === "$$" &&
+				last_bound_type === BoundType.Opening &&
+				bound_text === "$"
+			) {
 				continue;
 			}
 			if (bound_text === "\n") {
