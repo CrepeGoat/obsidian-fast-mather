@@ -152,64 +152,82 @@ function parseContextTokens(doc: Text): ContextToken[] {
 	let result: ContextToken[] = [];
 	let stack: ContextToken[] = [];
 
+	let tokens = ["$$", "$"];
 	let i_doc = 0;
+	while (true) {
+		let search_tokens = [...tokens];
+		const last_bound_text = result.last()?.text(doc);
+		const last_bound_type = result.last()?.type;
+		if (last_bound_text === "$" && last_bound_type === BoundType.Opening) {
+			search_tokens.push("\n");
+		}
+
+		let search_result = findTokenFrom(doc, i_doc, search_tokens);
+		if (search_result === undefined) {
+			break;
+		}
+		i_doc = search_result[0];
+		const [_, token_text] = search_result;
+
+		if (last_bound_text === "$$" && token_text === "$") {
+			continue;
+		}
+		if (token_text === "\n") {
+			if (
+				last_bound_text === "$" &&
+				last_bound_type === BoundType.Opening
+			) {
+				// a `$` terminated with a newline is not a bound
+				result.pop();
+			}
+			// newlines are not a bound -> ignore
+			continue;
+		}
+
+		let bound_type: BoundType;
+		if (
+			pushToBoundStack(stack, doc, i_doc, i_doc + token_text.length) ==
+			null
+		) {
+			bound_type = BoundType.Opening;
+		} else {
+			bound_type = BoundType.Closing;
+		}
+
+		result.push(
+			new ContextToken(i_doc, i_doc + token_text.length, bound_type)
+		);
+
+		// make sure not to interpret the same bound multiple times
+		i_doc = i_doc + token_text.length;
+		break;
+	}
+
+	return result;
+}
+
+function findTokenFrom(
+	doc: Text,
+	i_doc: number,
+	tokens: string[]
+): [number, string] | undefined {
 	while (i_doc < doc.length) {
 		// scan for bounds (also increments i_doc)
-		for (let bound_text of ["$$", "$", "\n", undefined]) {
+		for (let bound_text of [...tokens, undefined]) {
 			// terminating condition
 			if (bound_text === undefined) {
 				i_doc++;
 				break;
 			}
 
-			if (
-				doc.sliceString(i_doc, i_doc + bound_text.length) !== bound_text
-			) {
-				continue;
+			const text = doc.sliceString(i_doc, i_doc + bound_text.length);
+			if (text === bound_text) {
+				// make sure not to interpret the same bound multiple times
+				i_doc += bound_text.length;
+				return [i_doc, text];
 			}
-
-			let last_bound_text = result.last()?.text(doc);
-			let last_bound_type = result.last()?.type;
-			if (last_bound_text === "$$" && bound_text === "$") {
-				continue;
-			}
-			if (bound_text === "\n") {
-				if (
-					last_bound_text === "$" &&
-					last_bound_type === BoundType.Opening
-				) {
-					// a `$` terminated with a newline is not a bound
-					result.pop();
-				}
-				// newlines are not a bound -> ignore
-				continue;
-			}
-
-			let bound_type: BoundType;
-			if (
-				pushToBoundStack(
-					stack,
-					doc,
-					i_doc,
-					i_doc + bound_text.length
-				) == null
-			) {
-				bound_type = BoundType.Opening;
-			} else {
-				bound_type = BoundType.Closing;
-			}
-
-			result.push(
-				new ContextToken(i_doc, i_doc + bound_text.length, bound_type)
-			);
-
-			// make sure not to interpret the same bound multiple times
-			i_doc = i_doc + bound_text.length;
-			break;
 		}
 	}
-
-	return result;
 }
 
 function pushToBoundStack(
