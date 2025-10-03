@@ -169,11 +169,15 @@ function parseContextTokens(doc: Text): ContextToken[] {
 			}
 
 			let last_bound_text = result.last()?.text(doc);
+			let last_bound_type = result.last()?.type;
 			if (last_bound_text === "$$" && bound_text === "$") {
 				continue;
 			}
 			if (bound_text === "\n") {
-				if (last_bound_text === "$" /* TODO and bound is opening */) {
+				if (
+					last_bound_text === "$" &&
+					last_bound_type === BoundType.Opening
+				) {
 					// a `$` terminated with a newline is not a bound
 					result.pop();
 				}
