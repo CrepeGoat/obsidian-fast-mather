@@ -167,7 +167,7 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 				continue;
 			}
 
-			let last_bound_text = result.last()?.text(doc);
+			let last_bound_text = result[result.length - 1]?.text(doc);
 			if (last_bound_text === "$$" && bound_text === "$") {
 				continue;
 			}
@@ -216,8 +216,8 @@ function pushToBoundStack(
 	const text = doc.sliceString(from, to);
 	const last_bound = stack.last;
 	if (
-		stack.last()?.type === BoundType.Opening &&
-		stack.last()?.text(doc) === text
+		stack[stack.length - 1]?.type === BoundType.Opening &&
+		stack[stack.length - 1]?.text(doc) === text
 	) {
 		return stack.pop();
 	} else {
@@ -241,7 +241,7 @@ export class ContextToken {
 	}
 }
 
-interface MinimalText {
+export interface MinimalText {
 	length: number;
 	sliceString(
 		from: number,
@@ -250,7 +250,7 @@ interface MinimalText {
 	): string;
 }
 
-interface MinimalSelectionRange {
+export interface MinimalSelectionRange {
 	from: number;
 	to: number;
 }
@@ -260,7 +260,7 @@ export enum MajorContextTypes {
 	Math,
 }
 
-enum BoundType {
+export enum BoundType {
 	Opening,
 	Closing,
 }
