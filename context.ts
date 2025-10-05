@@ -1,10 +1,9 @@
-import { EditorState, SelectionRange, Text } from "@codemirror/state";
 import { strict as assert } from "assert";
 
-export function getContextTypeAtSelection(
-	doc: Text,
-	ranges: readonly SelectionRange[]
-): MajorContextTypes[] {
+export function getContextBoundsAtSelection(
+	doc: MinimalText,
+	ranges: readonly MinimalSelectionRange[]
+): ContextToken[][] {
 	const bounds = parseContextTokens(doc);
 	const positions = ranges.flatMap((range) => [range.from, range.to]);
 	const pos_bound_indices = bisectPositionsToBounds(bounds, positions);
@@ -17,11 +16,11 @@ export function getContextTypeAtSelection(
 		);
 	}
 
-	return range_bound_stacks.map((x) => getMajorType(doc, x));
+	return range_bound_stacks;
 }
 
-function getMajorType(
-	doc: Text,
+export function getMajorType(
+	doc: MinimalText,
 	bound_stack: readonly ContextToken[]
 ): MajorContextTypes {
 	let result = MajorContextTypes.Text;
@@ -78,7 +77,7 @@ function getBoundsAbout(
 		if (bound.type === BoundType.Closing) {
 			// A closing bound must have a matching opening bound
 			// TODO check that bounds are matching
-			assert(stack.last()?.type === BoundType.Opening);
+			assert(stack[stack.length - 1]?.type === BoundType.Opening);
 			stack.pop();
 		} else {
 			stack.push(bound);
@@ -148,7 +147,7 @@ function assertIsSorted(array: readonly number[]) {
 	}
 }
 
-function parseContextTokens(doc: Text): ContextToken[] {
+function parseContextTokens(doc: MinimalText): ContextToken[] {
 	let result: ContextToken[] = [];
 	let stack: ContextToken[] = [];
 
@@ -168,12 +167,20 @@ function parseContextTokens(doc: Text): ContextToken[] {
 				continue;
 			}
 
-			let last_bound_text = result.last()?.text(doc);
-			if (last_bound_text === "$$" && bound_text === "$") {
+			let last_bound_text = result[result.length - 1]?.text(doc);
+			let last_bound_type = result[result.length - 1]?.type;
+			if (
+				last_bound_text === "$$" &&
+				last_bound_type === BoundType.Opening &&
+				bound_text === "$"
+			) {
 				continue;
 			}
 			if (bound_text === "\n") {
-				if (last_bound_text === "$") {
+				if (
+					last_bound_text === "$" &&
+					last_bound_type === BoundType.Opening
+				) {
 					// a `$` terminated with a newline is not a bound
 					result.pop();
 				}
@@ -210,15 +217,14 @@ function parseContextTokens(doc: Text): ContextToken[] {
 
 function pushToBoundStack(
 	stack: ContextToken[],
-	doc: Text,
+	doc: MinimalText,
 	from: number,
 	to: number
 ): ContextToken | undefined {
 	const text = doc.sliceString(from, to);
-	const last_bound = stack.last;
 	if (
-		stack.last()?.type === BoundType.Opening &&
-		stack.last()?.text(doc) === text
+		stack[stack.length - 1]?.type === BoundType.Opening &&
+		stack[stack.length - 1]?.text(doc) === text
 	) {
 		return stack.pop();
 	} else {
@@ -226,7 +232,7 @@ function pushToBoundStack(
 	}
 }
 
-class ContextToken {
+export class ContextToken {
 	from: number;
 	to: number;
 	type: BoundType;
@@ -237,9 +243,23 @@ class ContextToken {
 		this.type = type;
 	}
 
-	public text(doc: Text): string {
+	public text(doc: MinimalText): string {
 		return doc.sliceString(this.from, this.to);
 	}
+}
+
+export interface MinimalText {
+	length: number;
+	sliceString(
+		from: number,
+		to?: number | undefined,
+		lineSep?: string | undefined
+	): string;
+}
+
+export interface MinimalSelectionRange {
+	from: number;
+	to: number;
 }
 
 export enum MajorContextTypes {
@@ -247,7 +267,7 @@ export enum MajorContextTypes {
 	Math,
 }
 
-enum BoundType {
+export enum BoundType {
 	Opening,
 	Closing,
 }
