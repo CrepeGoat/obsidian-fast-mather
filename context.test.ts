@@ -134,6 +134,40 @@ describe("getContextBoundsAtSelection", () => {
 			],
 		]);
 	});
+
+	test("handles mixed inline and display math blocks", () => {
+		const doc = new MockText(
+			"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $1 - 1 = 0$"
+		);
+		const ranges: readonly MinimalSelectionRange[] = [
+			{
+				from: "math 1:\n$$1 + 1".length,
+				to: "math 1:\n$$1 + 1 =".length,
+			},
+			{
+				from: "math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $1 -".length,
+				to: "math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $1 - 1 ="
+					.length,
+			},
+		];
+
+		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
+			[
+				new ContextToken(
+					"math 1:\n".length,
+					"math 1:\n$$".length,
+					BoundType.Opening
+				),
+			],
+			[
+				new ContextToken(
+					"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 ".length,
+					"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $".length,
+					BoundType.Opening
+				),
+			],
+		]);
+	});
 });
 
 class MockText implements MinimalText {
