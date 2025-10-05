@@ -178,6 +178,18 @@ describe("getContextBoundsAtSelection", () => {
 			],
 		]);
 	});
+
+	test("terminates an inline math block ($) when interrupted by a newline (\\n)", () => {
+		const doc = new MockText("just talking $ here\n");
+		const ranges: readonly MinimalSelectionRange[] = [
+			{
+				from: "just talking $".length,
+				to: "just talking $".length,
+			},
+		];
+
+		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([[]]);
+	});
 });
 
 class MockText implements MinimalText {
