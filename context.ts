@@ -1,9 +1,9 @@
 import { strict as assert } from "assert";
 
-export function getContextTypeAtSelection(
+export function getContextBoundsAtSelection(
 	doc: MinimalText,
 	ranges: readonly MinimalSelectionRange[]
-): MajorContextTypes[] {
+): ContextToken[][] {
 	const bounds = parseContextTokens(doc);
 	const positions = ranges.flatMap((range) => [range.from, range.to]);
 	const pos_bound_indices = bisectPositionsToBounds(bounds, positions);
@@ -16,10 +16,10 @@ export function getContextTypeAtSelection(
 		);
 	}
 
-	return range_bound_stacks.map((x) => getMajorType(doc, x));
+	return range_bound_stacks;
 }
 
-function getMajorType(
+export function getMajorType(
 	doc: MinimalText,
 	bound_stack: readonly ContextToken[]
 ): MajorContextTypes {
@@ -225,7 +225,7 @@ function pushToBoundStack(
 	}
 }
 
-class ContextToken {
+export class ContextToken {
 	from: number;
 	to: number;
 	type: BoundType;
