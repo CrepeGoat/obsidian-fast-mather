@@ -1,9 +1,8 @@
-import { EditorState, SelectionRange, Text } from "@codemirror/state";
 import { strict as assert } from "assert";
 
 export function getContextTypeAtSelection(
-	doc: Text,
-	ranges: readonly SelectionRange[]
+	doc: MinimalText,
+	ranges: readonly MinimalSelectionRange[]
 ): MajorContextTypes[] {
 	const bounds = parseContextTokens(doc);
 	const positions = ranges.flatMap((range) => [range.from, range.to]);
@@ -21,7 +20,7 @@ export function getContextTypeAtSelection(
 }
 
 function getMajorType(
-	doc: Text,
+	doc: MinimalText,
 	bound_stack: readonly ContextToken[]
 ): MajorContextTypes {
 	let result = MajorContextTypes.Text;
@@ -148,7 +147,7 @@ function assertIsSorted(array: readonly number[]) {
 	}
 }
 
-function parseContextTokens(doc: Text): ContextToken[] {
+function parseContextTokens(doc: MinimalText): ContextToken[] {
 	let result: ContextToken[] = [];
 	let stack: ContextToken[] = [];
 
@@ -210,7 +209,7 @@ function parseContextTokens(doc: Text): ContextToken[] {
 
 function pushToBoundStack(
 	stack: ContextToken[],
-	doc: Text,
+	doc: MinimalText,
 	from: number,
 	to: number
 ): ContextToken | undefined {
@@ -237,9 +236,23 @@ class ContextToken {
 		this.type = type;
 	}
 
-	public text(doc: Text): string {
+	public text(doc: MinimalText): string {
 		return doc.sliceString(this.from, this.to);
 	}
+}
+
+interface MinimalText {
+	length: number;
+	sliceString(
+		from: number,
+		to?: number | undefined,
+		lineSep?: string | undefined
+	): string;
+}
+
+interface MinimalSelectionRange {
+	from: number;
+	to: number;
 }
 
 export enum MajorContextTypes {
