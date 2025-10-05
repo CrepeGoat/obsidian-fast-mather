@@ -182,6 +182,7 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 					last_bound_type === BoundType.Opening
 				) {
 					// a `$` terminated with a newline is not a bound
+					stack.pop();
 					result.pop();
 				}
 				// newlines are not a bound -> ignore
@@ -195,7 +196,7 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 					doc,
 					i_doc,
 					i_doc + bound_text.length
-				) == null
+				) === undefined
 			) {
 				bound_type = BoundType.Opening;
 			} else {
