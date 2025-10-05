@@ -180,15 +180,22 @@ describe("getContextBoundsAtSelection", () => {
 	});
 
 	test("terminates an inline math block ($) when interrupted by a newline (\\n)", () => {
-		const doc = new MockText("just talking $ here\n");
+		const doc = new MockText("just talking $ here\n$\n\n");
 		const ranges: readonly MinimalSelectionRange[] = [
 			{
 				from: "just talking $".length,
 				to: "just talking $".length,
 			},
+			{
+				from: "just talking $ here\n$\n".length,
+				to: "just talking $ here\n$\n".length,
+			},
 		];
 
-		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([[]]);
+		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
+			[],
+			[],
+		]);
 	});
 });
 
