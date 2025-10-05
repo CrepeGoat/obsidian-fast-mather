@@ -77,7 +77,7 @@ function getBoundsAbout(
 		if (bound.type === BoundType.Closing) {
 			// A closing bound must have a matching opening bound
 			// TODO check that bounds are matching
-			assert(stack.last()?.type === BoundType.Opening);
+			assert(stack[stack.length - 1]?.type === BoundType.Opening);
 			stack.pop();
 		} else {
 			stack.push(bound);
@@ -214,7 +214,6 @@ function pushToBoundStack(
 	to: number
 ): ContextToken | undefined {
 	const text = doc.sliceString(from, to);
-	const last_bound = stack.last;
 	if (
 		stack[stack.length - 1]?.type === BoundType.Opening &&
 		stack[stack.length - 1]?.text(doc) === text
