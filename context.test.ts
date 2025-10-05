@@ -25,16 +25,25 @@ describe("getContextBoundsAtSelection", () => {
 		]);
 	});
 
-	test("returns one bound when inside an inline math block ($)", () => {
-		const doc = new MockText("simple math $1 + 1 = 2$, nicely formatted");
+	test("handles an inline math block ($)", () => {
+		const doc = new MockText("simple math $1 + 1 = 2$, nicely formatted\n");
 		const ranges: readonly MinimalSelectionRange[] = [
+			{
+				from: "simple math".length,
+				to: "simple math".length,
+			},
 			{
 				from: "simple math $1 + ".length,
 				to: "simple math $1 + 1 =".length,
 			},
+			{
+				from: "simple math $1 + 1 = 2$, nicely".length,
+				to: "simple math $1 + 1 = 2$, nicely".length,
+			},
 		];
 
 		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
+			[],
 			[
 				new ContextToken(
 					"simple math ".length,
@@ -42,6 +51,7 @@ describe("getContextBoundsAtSelection", () => {
 					BoundType.Opening
 				),
 			],
+			[],
 		]);
 	});
 
