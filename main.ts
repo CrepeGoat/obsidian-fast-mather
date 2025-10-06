@@ -16,6 +16,11 @@ import {
 	PluginSettingTab,
 	Setting,
 } from "obsidian";
+import {
+	getContextBoundsAtSelection,
+	getMajorType,
+	MajorContextTypes,
+} from "context";
 
 interface FastMatherSettings {
 	mySetting: string;
@@ -138,6 +143,15 @@ export default class FastMather extends Plugin {
 		isIME: boolean,
 		view: EditorView
 	) {
+		const bounds = getContextBoundsAtSelection(view.state.doc, [
+			view.state.selection.main,
+		])[0]!;
+		const context_type = getMajorType(view.state.doc, bounds);
+		console.log("context type: ", MajorContextTypes[context_type]);
+		if (context_type === MajorContextTypes.Math) {
+			return false;
+		}
+
 		if (shiftKey) {
 			return false;
 		}
