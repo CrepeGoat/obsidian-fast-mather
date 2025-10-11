@@ -4,10 +4,11 @@ export function getContextBoundsAtSelection(
 	doc: MinimalText,
 	ranges: readonly MinimalSelectionRange[]
 ): ContextToken[][] {
-	const bounds = parseContextTokens(doc);
+	const bound_pairs = parseContextTokens(doc);
+	const flat_bounds = flattenBoundPairs(bound_pairs);
 	const positions = ranges.flatMap((range) => [range.from, range.to]);
-	const pos_bound_indices = bisectPositionsToBounds(bounds, positions);
-	const pos_bound_stacks = getBoundsAbout(bounds, pos_bound_indices);
+	const pos_bound_indices = bisectPositionsToBounds(flat_bounds, positions);
+	const pos_bound_stacks = getBoundsAbout(flat_bounds, pos_bound_indices);
 
 	let range_bound_stacks = [];
 	for (let i = 1; i < pos_bound_stacks.length; i = i + 2) {
@@ -21,11 +22,11 @@ export function getContextBoundsAtSelection(
 
 export function getMajorType(
 	doc: MinimalText,
-	bound_stack: readonly ContextToken[]
+	bound_stack: readonly BoundTokenPair[]
 ): MajorContextTypes {
 	let result = MajorContextTypes.Text;
 	for (let bound of bound_stack) {
-		const text = bound.text(doc);
+		const text = bound.start.text(doc);
 		if (result === MajorContextTypes.Math && text === "\\text{") {
 			result = MajorContextTypes.Text;
 			continue;
@@ -147,9 +148,40 @@ function assertIsSorted(array: readonly number[]) {
 	}
 }
 
-function parseContextTokens(doc: MinimalText): ContextToken[] {
+function flattenBoundPairs(bound_pairs: BoundTokenPair[]): ContextToken[] {
 	let result: ContextToken[] = [];
 	let stack: ContextToken[] = [];
+
+	for (let bound_pair of bound_pairs) {
+		while (
+			stack.length > 0 &&
+			stack[stack.length - 1]!.from < bound_pair.start.from
+		) {
+			result.push(stack.pop()!);
+		}
+		if (bound_pair.end !== undefined) {
+			stack.push(
+				new ContextToken(
+					bound_pair.end.from,
+					bound_pair.end.to,
+					BoundType.Closing
+				)
+			);
+		}
+		stack.push(
+			new ContextToken(
+				bound_pair.start.from,
+				bound_pair.start.to,
+				BoundType.Opening
+			)
+		);
+	}
+	return result;
+}
+
+function parseContextTokens(doc: MinimalText): BoundTokenPair[] {
+	let stack: BoundTokenPair[] = [];
+	let result_pairs: BoundTokenPair[] = [];
 
 	let i_doc = 0;
 	while (i_doc < doc.length) {
@@ -167,45 +199,42 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 				continue;
 			}
 
-			let last_bound_text = result[result.length - 1]?.text(doc);
-			let last_bound_type = result[result.length - 1]?.type;
+			let last_bound_start_text =
+				stack[stack.length - 1]?.start.text(doc);
+			let last_bound_is_incomplete =
+				stack[stack.length - 1]?.isIncomplete();
 			if (
-				last_bound_text === "$$" &&
-				last_bound_type === BoundType.Opening &&
+				last_bound_start_text === "$$" &&
+				last_bound_is_incomplete &&
 				bound_text === "$"
 			) {
+				// a $ within a display math block is not a token -> ignore
 				continue;
 			}
 			if (bound_text === "\n") {
-				if (
-					last_bound_text === "$" &&
-					last_bound_type === BoundType.Opening
-				) {
+				if (last_bound_start_text === "$" && last_bound_is_incomplete) {
 					// a `$` terminated with a newline is not a bound
 					stack.pop();
-					result.pop();
+					result_pairs.pop();
 				}
 				// newlines are not a bound -> ignore
 				continue;
 			}
 
-			let bound_type: BoundType;
-			if (
-				pushToBoundStack(
-					stack,
-					doc,
-					i_doc,
-					i_doc + bound_text.length
-				) === undefined
-			) {
-				bound_type = BoundType.Opening;
-			} else {
-				bound_type = BoundType.Closing;
-			}
-
-			result.push(
-				new ContextToken(i_doc, i_doc + bound_text.length, bound_type)
+			const token = new PartialBoundToken(
+				i_doc,
+				i_doc + bound_text.length
 			);
+			if (
+				last_bound_is_incomplete &&
+				last_bound_start_text === bound_text
+			) {
+				stack.pop()!.end = token;
+			} else {
+				const new_bound = new BoundTokenPair(token);
+				stack.push(new_bound);
+				result_pairs.push(new_bound);
+			}
 
 			// make sure not to interpret the same bound multiple times
 			i_doc = i_doc + bound_text.length;
@@ -213,23 +242,37 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 		}
 	}
 
-	return result;
+	return result_pairs;
 }
 
-function pushToBoundStack(
-	stack: ContextToken[],
-	doc: MinimalText,
-	from: number,
-	to: number
-): ContextToken | undefined {
-	const text = doc.sliceString(from, to);
-	if (
-		stack[stack.length - 1]?.type === BoundType.Opening &&
-		stack[stack.length - 1]?.text(doc) === text
-	) {
-		return stack.pop();
-	} else {
-		stack.push(new ContextToken(from, to, BoundType.Opening));
+export class BoundTokenPair {
+	start: PartialBoundToken;
+	end: PartialBoundToken | undefined;
+
+	constructor(start: PartialBoundToken, end?: PartialBoundToken | undefined) {
+		this.start = start;
+		this.end = end;
+	}
+
+	public isComplete(): boolean {
+		return this.end !== undefined;
+	}
+	public isIncomplete(): boolean {
+		return this.end === undefined;
+	}
+}
+
+export class PartialBoundToken {
+	from: number;
+	to: number;
+
+	constructor(from: number, to: number) {
+		this.from = from;
+		this.to = to;
+	}
+
+	public text(doc: MinimalText): string {
+		return doc.sliceString(this.from, this.to);
 	}
 }
 
