@@ -184,26 +184,15 @@ export default class FastMather extends Plugin {
 				const cursorPos = view.state.selection.main.to;
 				const doc = view.state.doc;
 
-				const text_code = "mat";
 				if (
-					((cursorPos > text_code.length &&
-						doc
-							.sliceString(
-								cursorPos - 1 - text_code.length,
-								cursorPos - text_code.length
-							)
-							.trim() === "") ||
-						cursorPos === text_code.length) &&
-					doc.sliceString(cursorPos - text_code.length, cursorPos) ===
-						text_code
-				) {
-					this.replaceRange(
+					this.expandText(
 						view,
-						cursorPos - text_code.length,
 						cursorPos,
+						"mat",
 						"\\begin{matrix}\n\n\\end{matrix}\n",
 						"\\begin{matrix}\n".length
-					);
+					)
+				) {
 					return true;
 				}
 			}
@@ -222,52 +211,60 @@ export default class FastMather extends Plugin {
 			);
 
 			// TODO disallow expansions for text followed by non-whitespace
-			if (
-				doc
-					.sliceString(
-						Math.max(cursorPos - 2, 0),
-						Math.max(cursorPos - 1, 0)
-					)
-					.trim() === "" &&
-				doc.sliceString(Math.max(cursorPos - 1, 0), cursorPos) === "m"
-			) {
-				this.replaceRange(view, cursorPos - 1, cursorPos, "$$", 1);
+			if (this.expandText(view, cursorPos, "m", "$$", 1)) {
 				return true;
 			} else if (
-				doc
-					.sliceString(
-						Math.max(cursorPos - 3, 0),
-						Math.max(cursorPos - 2, 0)
-					)
-					.trim() === "" &&
-				doc.sliceString(Math.max(cursorPos - 2, 0), cursorPos) === "mm"
-			) {
-				this.replaceRange(
+				this.expandText(
 					view,
-					cursorPos - 2,
 					cursorPos,
+					"mm",
 					"$$\n\n$$\n",
 					"$$\n".length
-				);
+				)
+			) {
 				return true;
 			} else if (
-				doc
-					.sliceString(
-						Math.max(cursorPos - 3, 0),
-						Math.max(cursorPos - 2, 0)
-					)
-					.trim() === "" &&
-				doc.sliceString(Math.max(cursorPos - 2, 0), cursorPos) === "ma"
-			) {
-				this.replaceRange(
+				this.expandText(
 					view,
-					cursorPos - 2,
 					cursorPos,
+					"ma",
 					"$$\n\\begin{align}\n\n\\end{align}\n$$\n",
 					"$$\n\\begin{align}\n".length
-				);
+				)
+			) {
 				return true;
 			}
+		}
+		return false;
+	}
+
+	expandText(
+		view: EditorView,
+		cursorPos: number,
+		textCode: string,
+		expandedText: string,
+		newCursorPos: number
+	) {
+		const doc = view.state.doc;
+		if (
+			((cursorPos > textCode.length &&
+				doc
+					.sliceString(
+						cursorPos - 1 - textCode.length,
+						cursorPos - textCode.length
+					)
+					.trim() === "") ||
+				cursorPos === textCode.length) &&
+			doc.sliceString(cursorPos - textCode.length, cursorPos) === textCode
+		) {
+			this.replaceRange(
+				view,
+				cursorPos - textCode.length,
+				cursorPos,
+				expandedText,
+				newCursorPos
+			);
+			return true;
 		}
 		return false;
 	}
