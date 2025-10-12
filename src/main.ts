@@ -179,6 +179,35 @@ export default class FastMather extends Plugin {
 			// 	});
 			// 	return true;
 			// }
+
+			if (key === " ") {
+				const cursorPos = view.state.selection.main.to;
+				const doc = view.state.doc;
+
+				const text_code = "mat";
+				if (
+					((cursorPos > text_code.length &&
+						doc
+							.sliceString(
+								cursorPos - 1 - text_code.length,
+								cursorPos - text_code.length
+							)
+							.trim() === "") ||
+						cursorPos === text_code.length) &&
+					doc.sliceString(cursorPos - text_code.length, cursorPos) ===
+						text_code
+				) {
+					this.replaceRange(
+						view,
+						cursorPos - text_code.length,
+						cursorPos,
+						"\\begin{matrix}\n\n\\end{matrix}\n",
+						"\\begin{matrix}\n".length
+					);
+					return true;
+				}
+			}
+
 			return false;
 		}
 
