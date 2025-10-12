@@ -143,12 +143,37 @@ export default class FastMather extends Plugin {
 		isIME: boolean,
 		view: EditorView
 	) {
+		const main_selection = view.state.selection.main;
 		const bounds = getContextBoundsAtSelection(view.state.doc, [
-			view.state.selection.main,
+			main_selection,
 		])[0]!;
-		const context_type = getMajorType(view.state.doc, bounds);
+		const [context_type, bound] = getMajorType(view.state.doc, bounds);
 		console.log("context type: ", MajorContextTypes[context_type]);
+
 		if (context_type === MajorContextTypes.Math) {
+			if (key === "Tab") {
+				if (bound?.closing === undefined) {
+					return false;
+				}
+
+				let new_pos: number = view.state.doc.length;
+				if (
+					main_selection.from === main_selection.to &&
+					main_selection.from === bound.closing.from
+				) {
+					new_pos = bound.closing.to;
+				} else {
+					new_pos = bound.closing.from;
+				}
+
+				view.dispatch({
+					// https://codemirror.net/docs/guide/#selection
+					selection: EditorSelection.create([
+						EditorSelection.cursor(new_pos),
+					]),
+				});
+				return true;
+			}
 			return false;
 		}
 

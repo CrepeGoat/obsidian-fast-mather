@@ -4,9 +4,8 @@ import { strict as assert } from "assert";
 
 import {
 	getContextBoundsAtSelection,
-	MajorContextTypes,
-	ContextToken,
-	BoundType,
+	PartialBoundToken,
+	BoundTokenPair,
 	MinimalText,
 	MinimalSelectionRange,
 } from "./context";
@@ -45,10 +44,15 @@ describe("getContextBoundsAtSelection", () => {
 		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
 			[],
 			[
-				new ContextToken(
-					"simple math ".length,
-					"simple math $".length,
-					BoundType.Opening
+				new BoundTokenPair(
+					new PartialBoundToken(
+						"simple math ".length,
+						"simple math $".length
+					),
+					new PartialBoundToken(
+						"simple math $1 + 1 = 2".length,
+						"simple math $1 + 1 = 2$".length
+					)
 				),
 			],
 			[],
@@ -68,10 +72,15 @@ describe("getContextBoundsAtSelection", () => {
 
 		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
 			[
-				new ContextToken(
-					"display math:\n".length,
-					"display math:\n$$".length,
-					BoundType.Opening
+				new BoundTokenPair(
+					new PartialBoundToken(
+						"display math:\n".length,
+						"display math:\n$$".length
+					),
+					new PartialBoundToken(
+						"display math:\n$$\n1 + 1 = 2\n".length,
+						"display math:\n$$\n1 + 1 = 2\n$$".length
+					)
 				),
 			],
 		]);
@@ -94,17 +103,24 @@ describe("getContextBoundsAtSelection", () => {
 
 		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
 			[
-				new ContextToken(
-					"math 1 ".length,
-					"math 1 $".length,
-					BoundType.Opening
+				new BoundTokenPair(
+					new PartialBoundToken("math 1 ".length, "math 1 $".length),
+					new PartialBoundToken(
+						"math 1 $1 + 1 = 2".length,
+						"math 1 $1 + 1 = 2$".length
+					)
 				),
 			],
 			[
-				new ContextToken(
-					"math 1 $1 + 1 = 2$ followed by math 2 ".length,
-					"math 1 $1 + 1 = 2$ followed by math 2 $".length,
-					BoundType.Opening
+				new BoundTokenPair(
+					new PartialBoundToken(
+						"math 1 $1 + 1 = 2$ followed by math 2 ".length,
+						"math 1 $1 + 1 = 2$ followed by math 2 $".length
+					),
+					new PartialBoundToken(
+						"math 1 $1 + 1 = 2$ followed by math 2 $1 - 1 = 0".length,
+						"math 1 $1 + 1 = 2$ followed by math 2 $1 - 1 = 0$".length
+					)
 				),
 			],
 		]);
@@ -129,17 +145,27 @@ describe("getContextBoundsAtSelection", () => {
 
 		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
 			[
-				new ContextToken(
-					"math 1:\n".length,
-					"math 1:\n$$".length,
-					BoundType.Opening
+				new BoundTokenPair(
+					new PartialBoundToken(
+						"math 1:\n".length,
+						"math 1:\n$$".length
+					),
+					new PartialBoundToken(
+						"math 1:\n$$1 + 1 = 2".length,
+						"math 1:\n$$1 + 1 = 2$$".length
+					)
 				),
 			],
 			[
-				new ContextToken(
-					"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n".length,
-					"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n$$".length,
-					BoundType.Opening
+				new BoundTokenPair(
+					new PartialBoundToken(
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n".length,
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n$$".length
+					),
+					new PartialBoundToken(
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n$$1 - 1 = 0".length,
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n$$1 - 1 = 0$$".length
+					)
 				),
 			],
 		]);
@@ -163,17 +189,27 @@ describe("getContextBoundsAtSelection", () => {
 
 		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
 			[
-				new ContextToken(
-					"math 1:\n".length,
-					"math 1:\n$$".length,
-					BoundType.Opening
+				new BoundTokenPair(
+					new PartialBoundToken(
+						"math 1:\n".length,
+						"math 1:\n$$".length
+					),
+					new PartialBoundToken(
+						"math 1:\n$$1 + 1 = 2".length,
+						"math 1:\n$$1 + 1 = 2$$".length
+					)
 				),
 			],
 			[
-				new ContextToken(
-					"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 ".length,
-					"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $".length,
-					BoundType.Opening
+				new BoundTokenPair(
+					new PartialBoundToken(
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 ".length,
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $".length
+					),
+					new PartialBoundToken(
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $1 - 1 = 0".length,
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $1 - 1 = 0$".length
+					)
 				),
 			],
 		]);
