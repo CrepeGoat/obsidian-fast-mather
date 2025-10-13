@@ -150,6 +150,10 @@ export default class FastMather extends Plugin {
 		const [context_type, bound] = getMajorType(view.state.doc, bounds);
 		console.log("context type: ", MajorContextTypes[context_type]);
 
+		if (shiftKey) {
+			return false;
+		}
+
 		if (context_type === MajorContextTypes.Math) {
 			if (key === "Tab") {
 				if (bound?.closing === undefined) {
@@ -174,10 +178,6 @@ export default class FastMather extends Plugin {
 				});
 				return true;
 			}
-			return false;
-		}
-
-		if (shiftKey) {
 			return false;
 		}
 
