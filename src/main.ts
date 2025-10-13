@@ -155,29 +155,30 @@ export default class FastMather extends Plugin {
 		}
 
 		if (context_type === MajorContextTypes.Math) {
-			if (key === "Tab") {
-				if (bound?.closing === undefined) {
-					return false;
-				}
+			// TODO overrides adding indentation to display blocks -> fix
+			// if (key === "Tab") {
+			// 	if (bound?.closing === undefined) {
+			// 		return false;
+			// 	}
 
-				let new_pos: number = view.state.doc.length;
-				if (
-					main_selection.from === main_selection.to &&
-					main_selection.from === bound.closing.from
-				) {
-					new_pos = bound.closing.to;
-				} else {
-					new_pos = bound.closing.from;
-				}
+			// 	let new_pos: number = view.state.doc.length;
+			// 	if (
+			// 		main_selection.from === main_selection.to &&
+			// 		main_selection.from === bound.closing.from
+			// 	) {
+			// 		new_pos = bound.closing.to;
+			// 	} else {
+			// 		new_pos = bound.closing.from;
+			// 	}
 
-				view.dispatch({
-					// https://codemirror.net/docs/guide/#selection
-					selection: EditorSelection.create([
-						EditorSelection.cursor(new_pos),
-					]),
-				});
-				return true;
-			}
+			// 	view.dispatch({
+			// 		// https://codemirror.net/docs/guide/#selection
+			// 		selection: EditorSelection.create([
+			// 			EditorSelection.cursor(new_pos),
+			// 		]),
+			// 	});
+			// 	return true;
+			// }
 			return false;
 		}
 
