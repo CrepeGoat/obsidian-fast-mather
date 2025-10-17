@@ -289,6 +289,19 @@ export default class FastMather extends Plugin {
 			) {
 				return true;
 			}
+			for (let char of "abcdefghijklmnopqrstuvwxyz") {
+				if (
+					this.expandText(
+						view,
+						cursorPos,
+						char + char,
+						char.toUpperCase(),
+						1
+					)
+				) {
+					return true;
+				}
+			}
 		}
 
 		return false;
