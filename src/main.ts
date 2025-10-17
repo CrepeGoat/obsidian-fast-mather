@@ -222,8 +222,8 @@ export default class FastMather extends Plugin {
 						view,
 						cursorPos,
 						"pwise",
-						"\\left\\{\\begin{array}{ll}  & \\\\ \\end{array}\\right.",
-						"\\left\\{\\begin{array}{ll} ".length
+						"\\left\\{\\begin{array}{ll}\\end{array}\\right.",
+						"\\left\\{\\begin{array}{ll}".length
 					)
 				) {
 					return true;
@@ -233,8 +233,8 @@ export default class FastMather extends Plugin {
 						view,
 						cursorPos,
 						"array",
-						"\\begin{array}{l}  & \\\\ \\end{array}",
-						"\\begin{array}{l} ".length
+						"\\begin{array}{l}\\end{array}",
+						"\\begin{array}{l}".length
 					)
 				) {
 					return true;
