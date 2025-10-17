@@ -154,142 +154,143 @@ export default class FastMather extends Plugin {
 			return false;
 		}
 
-		if (context_type === MajorContextTypes.Math) {
-			// TODO overrides adding indentation to display blocks -> fix
-			// if (key === "Tab") {
-			// 	if (bound?.closing === undefined) {
-			// 		return false;
-			// 	}
-
-			// 	let new_pos: number = view.state.doc.length;
-			// 	if (
-			// 		main_selection.from === main_selection.to &&
-			// 		main_selection.from === bound.closing.from
-			// 	) {
-			// 		new_pos = bound.closing.to;
-			// 	} else {
-			// 		new_pos = bound.closing.from;
-			// 	}
-
-			// 	view.dispatch({
-			// 		// https://codemirror.net/docs/guide/#selection
-			// 		selection: EditorSelection.create([
-			// 			EditorSelection.cursor(new_pos),
-			// 		]),
-			// 	});
-			// 	return true;
-			// }
-
+		if (context_type === MajorContextTypes.Text) {
 			if (key === " ") {
+				// from https://github.com/artisticat1/obsidian-latex-suite/blob/ce31511a47949e3d4d0b3a43444949fd5a6a69f6/src/utils/editor_utils.ts#L12
 				const cursorPos = view.state.selection.main.to;
 				const doc = view.state.doc;
 
-				if (
+				const chars = doc.sliceString(
+					Math.max(cursorPos - 3, 0),
+					cursorPos
+				);
+
+				// TODO disallow expansions for text followed by non-whitespace
+				if (this.expandText(view, cursorPos, "m", "$$", 1)) {
+					return true;
+				} else if (
 					this.expandText(
 						view,
 						cursorPos,
-						"lr",
-						"\\left\\right",
-						"\\left".length
+						"mm",
+						"$$\n\n$$\n",
+						"$$\n".length
 					)
 				) {
 					return true;
-				}
-				if (
+				} else if (
 					this.expandText(
 						view,
 						cursorPos,
-						"text",
-						"\\text{}",
-						"\\text{".length
-					)
-				) {
-					return true;
-				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						"mat",
-						"\\left[\\begin{matrix}  \\end{matrix}\\right]",
-						"\\left[\\begin{matrix} ".length
-					)
-				) {
-					return true;
-				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						"pwise",
-						"\\left\\{\\begin{array}{ll}\\end{array}\\right.",
-						"\\left\\{\\begin{array}{ll}".length
-					)
-				) {
-					return true;
-				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						"array",
-						"\\begin{array}{l}\\end{array}",
-						"\\begin{array}{l}".length
-					)
-				) {
-					return true;
-				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						"align",
-						"\\begin{align}\n\n\\end{align}",
-						"\\begin{align}\n".length
+						"ma",
+						"$$\n\\begin{align}\n\n\\end{align}\n$$\n",
+						"$$\n\\begin{align}\n".length
 					)
 				) {
 					return true;
 				}
 			}
-
 			return false;
 		}
+		// else if (context_type === MajorContextTypes.Math)
+
+		// TODO overrides adding indentation to display blocks -> fix
+		// if (key === "Tab") {
+		// 	if (bound?.closing === undefined) {
+		// 		return false;
+		// 	}
+
+		// 	let new_pos: number = view.state.doc.length;
+		// 	if (
+		// 		main_selection.from === main_selection.to &&
+		// 		main_selection.from === bound.closing.from
+		// 	) {
+		// 		new_pos = bound.closing.to;
+		// 	} else {
+		// 		new_pos = bound.closing.from;
+		// 	}
+
+		// 	view.dispatch({
+		// 		// https://codemirror.net/docs/guide/#selection
+		// 		selection: EditorSelection.create([
+		// 			EditorSelection.cursor(new_pos),
+		// 		]),
+		// 	});
+		// 	return true;
+		// }
 
 		if (key === " ") {
-			// from https://github.com/artisticat1/obsidian-latex-suite/blob/ce31511a47949e3d4d0b3a43444949fd5a6a69f6/src/utils/editor_utils.ts#L12
 			const cursorPos = view.state.selection.main.to;
 			const doc = view.state.doc;
 
-			const chars = doc.sliceString(
-				Math.max(cursorPos - 3, 0),
-				cursorPos
-			);
-
-			// TODO disallow expansions for text followed by non-whitespace
-			if (this.expandText(view, cursorPos, "m", "$$", 1)) {
-				return true;
-			} else if (
+			if (
 				this.expandText(
 					view,
 					cursorPos,
-					"mm",
-					"$$\n\n$$\n",
-					"$$\n".length
+					"lr",
+					"\\left\\right",
+					"\\left".length
 				)
 			) {
 				return true;
-			} else if (
+			}
+			if (
 				this.expandText(
 					view,
 					cursorPos,
-					"ma",
-					"$$\n\\begin{align}\n\n\\end{align}\n$$\n",
-					"$$\n\\begin{align}\n".length
+					"text",
+					"\\text{}",
+					"\\text{".length
+				)
+			) {
+				return true;
+			}
+			if (
+				this.expandText(
+					view,
+					cursorPos,
+					"mat",
+					"\\left[\\begin{matrix}  \\end{matrix}\\right]",
+					"\\left[\\begin{matrix} ".length
+				)
+			) {
+				return true;
+			}
+			if (
+				this.expandText(
+					view,
+					cursorPos,
+					"pwise",
+					"\\left\\{\\begin{array}{ll}\\end{array}\\right.",
+					"\\left\\{\\begin{array}{ll}".length
+				)
+			) {
+				return true;
+			}
+			if (
+				this.expandText(
+					view,
+					cursorPos,
+					"array",
+					"\\begin{array}{l}\\end{array}",
+					"\\begin{array}{l}".length
+				)
+			) {
+				return true;
+			}
+			if (
+				this.expandText(
+					view,
+					cursorPos,
+					"align",
+					"\\begin{align}\n\n\\end{align}",
+					"\\begin{align}\n".length
 				)
 			) {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
