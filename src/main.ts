@@ -239,6 +239,17 @@ export default class FastMather extends Plugin {
 				) {
 					return true;
 				}
+				if (
+					this.expandText(
+						view,
+						cursorPos,
+						"align",
+						"\\begin{align}\n\n\\end{align}",
+						"\\begin{align}\n".length
+					)
+				) {
+					return true;
+				}
 			}
 
 			return false;
