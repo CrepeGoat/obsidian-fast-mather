@@ -322,7 +322,7 @@ export default class FastMather extends Plugin {
 						cursorPos - 1 - textCode.length,
 						cursorPos - textCode.length
 					)
-					.trim() === "") ||
+					.match(/[^a-z\\]/i)) ||
 				cursorPos === textCode.length) &&
 			doc.sliceString(cursorPos - textCode.length, cursorPos) === textCode
 		) {
