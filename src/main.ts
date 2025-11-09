@@ -221,100 +221,102 @@ export default class FastMather extends Plugin {
 		// 	return true;
 		// }
 
-		if (key === " ") {
-			const cursorPos = view.state.selection.main.to;
-			const doc = view.state.doc;
+		if (context_type === MajorContextTypes.Math) {
+			if (key === " ") {
+				const cursorPos = view.state.selection.main.to;
+				const doc = view.state.doc;
 
-			if (
-				this.expandText(
-					view,
-					cursorPos,
-					"lr",
-					"\\left\\right",
-					"\\left".length
-				)
-			) {
-				return true;
-			}
-			if (
-				this.expandText(
-					view,
-					cursorPos,
-					"text",
-					"\\text{}",
-					"\\text{".length
-				)
-			) {
-				return true;
-			}
-			if (
-				this.expandText(
-					view,
-					cursorPos,
-					"mat",
-					"\\left[\\begin{matrix}  \\end{matrix}\\right]",
-					"\\left[\\begin{matrix} ".length
-				)
-			) {
-				return true;
-			}
-			if (
-				this.expandText(
-					view,
-					cursorPos,
-					"pwise",
-					"\\left\\{\\begin{array}{ll}\\end{array}\\right.",
-					"\\left\\{\\begin{array}{ll}".length
-				)
-			) {
-				return true;
-			}
-			if (
-				this.expandText(
-					view,
-					cursorPos,
-					"array",
-					"\\begin{array}{l}\\end{array}",
-					"\\begin{array}{l}".length
-				)
-			) {
-				return true;
-			}
-			if (
-				this.expandText(
-					view,
-					cursorPos,
-					"align",
-					"\\begin{align}\n\n\\end{align}",
-					"\\begin{align}\n".length
-				)
-			) {
-				return true;
-			}
-			for (let char of "abcdefghijklmnopqrstuvwxyz") {
 				if (
 					this.expandText(
 						view,
 						cursorPos,
-						char + char,
-						char.toUpperCase(),
-						1
+						"lr",
+						"\\left\\right",
+						"\\left".length
 					)
 				) {
 					return true;
 				}
-			}
-			for (let command of mathjaxCommandData.commands) {
 				if (
 					this.expandText(
 						view,
 						cursorPos,
-						command,
-						"\\" + command,
-						1 + command.length
+						"text",
+						"\\text{}",
+						"\\text{".length
 					)
 				) {
 					return true;
+				}
+				if (
+					this.expandText(
+						view,
+						cursorPos,
+						"mat",
+						"\\left[\\begin{matrix}  \\end{matrix}\\right]",
+						"\\left[\\begin{matrix} ".length
+					)
+				) {
+					return true;
+				}
+				if (
+					this.expandText(
+						view,
+						cursorPos,
+						"pwise",
+						"\\left\\{\\begin{array}{ll}\\end{array}\\right.",
+						"\\left\\{\\begin{array}{ll}".length
+					)
+				) {
+					return true;
+				}
+				if (
+					this.expandText(
+						view,
+						cursorPos,
+						"array",
+						"\\begin{array}{l}\\end{array}",
+						"\\begin{array}{l}".length
+					)
+				) {
+					return true;
+				}
+				if (
+					this.expandText(
+						view,
+						cursorPos,
+						"align",
+						"\\begin{align}\n\n\\end{align}",
+						"\\begin{align}\n".length
+					)
+				) {
+					return true;
+				}
+				for (let char of "abcdefghijklmnopqrstuvwxyz") {
+					if (
+						this.expandText(
+							view,
+							cursorPos,
+							char + char,
+							char.toUpperCase(),
+							1
+						)
+					) {
+						return true;
+					}
+				}
+				for (let command of mathjaxCommandData.commands) {
+					if (
+						this.expandText(
+							view,
+							cursorPos,
+							command,
+							"\\" + command,
+							1 + command.length
+						)
+					) {
+						return true;
+					}
 				}
 			}
 		}
