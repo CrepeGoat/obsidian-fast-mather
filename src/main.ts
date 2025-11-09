@@ -22,6 +22,8 @@ import {
 	MajorContextTypes,
 } from "src/context";
 
+import * as mathjaxCommandData from "./mathjax-supported-commands.json";
+
 interface FastMatherSettings {
 	mySetting: string;
 }
@@ -297,6 +299,19 @@ export default class FastMather extends Plugin {
 						char + char,
 						char.toUpperCase(),
 						1
+					)
+				) {
+					return true;
+				}
+			}
+			for (let command of mathjaxCommandData.commands) {
+				if (
+					this.expandText(
+						view,
+						cursorPos,
+						command,
+						"\\" + command,
+						1 + command.length
 					)
 				) {
 					return true;
