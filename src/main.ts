@@ -241,17 +241,6 @@ export default class FastMather extends Plugin {
 					this.expandText(
 						view,
 						cursorPos,
-						"text",
-						"\\text{}",
-						"\\text{".length
-					)
-				) {
-					return true;
-				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
 						"mat",
 						"\\left[\\begin{matrix}  \\end{matrix}\\right]",
 						"\\left[\\begin{matrix} ".length

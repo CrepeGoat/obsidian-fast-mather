@@ -1068,7 +1068,7 @@
         {"command": "tau", "argument_count": null},
         {"command": "tbinom", "argument_count": null},
         {"command": "TeX", "argument_count": null},
-        {"command": "text", "argument_count": null},
+        {"command": "text", "argument_count": 1},
         {"command": "textacutedbl", "argument_count": null},
         {"command": "textasciiacute", "argument_count": null},
         {"command": "textasciibreve", "argument_count": null},
