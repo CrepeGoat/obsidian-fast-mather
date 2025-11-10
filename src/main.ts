@@ -305,7 +305,10 @@ export default class FastMather extends Plugin {
 						return true;
 					}
 				}
-				for (let command of mathjaxCommandData.commands) {
+				for (let {
+					command: command,
+					argument_count: _,
+				} of mathjaxCommandData.commands) {
 					if (
 						this.expandText(
 							view,
