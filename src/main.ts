@@ -307,15 +307,19 @@ export default class FastMather extends Plugin {
 				}
 				for (let {
 					command: command,
-					argument_count: _,
+					argument_count: arg_count,
 				} of mathjaxCommandData.commands) {
+					if (arg_count == null) {
+						arg_count = 0;
+					}
 					if (
 						this.expandText(
 							view,
 							cursorPos,
 							command,
-							"\\" + command,
-							1 + command.length
+							"\\" + command + "{}".repeat(arg_count),
+							("\\" + command + (arg_count === 0 ? "" : "{"))
+								.length
 						)
 					) {
 						return true;
