@@ -298,6 +298,11 @@ export default class FastMather extends Plugin {
 					command: command,
 					argument_count: arg_count,
 				} of mathjaxCommandData.commands) {
+					if (command.length === 1) {
+						// ignore single-letter commands, which are often used for variable names
+						// TODO remove once expansion selector is implemented
+						continue;
+					}
 					if (arg_count == null) {
 						arg_count = 0;
 					}
