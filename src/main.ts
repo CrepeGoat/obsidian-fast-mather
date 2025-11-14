@@ -385,17 +385,20 @@ export default class FastMather extends Plugin {
 			delete_prev = true;
 		}
 
-		if (bound?.closing === undefined) {
-			return doc.length;
-		}
-		let new_pos: number = doc.length;
-		if (cursorPos === bound.closing.from) {
-			new_pos = bound.closing.to;
+		let boundPos: number;
+		if (cursorPos === bound?.closing?.from) {
+			boundPos = bound.closing.to;
 		} else {
-			new_pos = bound.closing.from;
+			boundPos = bound?.closing?.from ?? doc.length;
 		}
 
-		return new_pos;
+		const textBetween = doc.sliceString(cursorPos + 1, boundPos);
+		const firstNewline = textBetween.indexOf("\n");
+		if (firstNewline >= 0) {
+			return firstNewline + cursorPos + 1;
+		}
+
+		return boundPos;
 	}
 
 	expandText(
