@@ -336,9 +336,11 @@ export default class FastMather extends Plugin {
 							view,
 							cursorPos,
 							command,
-							"\\" + command + "{}".repeat(arg_count),
-							("\\" + command + (arg_count === 0 ? "" : "{"))
-								.length
+							"\\" +
+								command +
+								"{}".repeat(arg_count) +
+								(arg_count === 0 ? " " : ""),
+							("\\" + command + 1).length
 						)
 					) {
 						return true;
