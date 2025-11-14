@@ -312,8 +312,8 @@ export default class FastMather extends Plugin {
 							view,
 							cursorPos,
 							char + char,
-							char.toUpperCase(),
-							1
+							char.toUpperCase() + " ",
+							2
 						)
 					) {
 						return true;
