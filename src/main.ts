@@ -241,17 +241,6 @@ export default class FastMather extends Plugin {
 					this.expandText(
 						view,
 						cursorPos,
-						"text",
-						"\\text{}",
-						"\\text{".length
-					)
-				) {
-					return true;
-				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
 						"mat",
 						"\\left[\\begin{matrix}  \\end{matrix}\\right]",
 						"\\left[\\begin{matrix} ".length
@@ -305,14 +294,26 @@ export default class FastMather extends Plugin {
 						return true;
 					}
 				}
-				for (let command of mathjaxCommandData.commands) {
+				for (let {
+					command: command,
+					argument_count: arg_count,
+				} of mathjaxCommandData.commands) {
+					if (command.length === 1) {
+						// ignore single-letter commands, which are often used for variable names
+						// TODO remove once expansion selector is implemented
+						continue;
+					}
+					if (arg_count == null) {
+						arg_count = 0;
+					}
 					if (
 						this.expandText(
 							view,
 							cursorPos,
 							command,
-							"\\" + command,
-							1 + command.length
+							"\\" + command + "{}".repeat(arg_count),
+							("\\" + command + (arg_count === 0 ? "" : "{"))
+								.length
 						)
 					) {
 						return true;
