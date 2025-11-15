@@ -233,6 +233,65 @@ describe("getContextBoundsAtSelection", () => {
 			[],
 		]);
 	});
+	test("ignores escaped bound (\\$) before inline math block ($)", () => {
+		const doc = new MockText(
+			"little bit of \\$ munny and $some math$ afterwards"
+		);
+		const ranges: readonly MinimalSelectionRange[] = [
+			{
+				from: "little bit of \\$ munny".length,
+				to: "little bit of \\$ munny".length,
+			},
+			{
+				from: "little bit of \\$ munny and $some".length,
+				to: "little bit of \\$ munny and $some".length,
+			},
+		];
+
+		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
+			[],
+			[
+				new BoundTokenPair(
+					new PartialBoundToken(
+						"little bit of \\$ munny and ".length,
+						"little bit of \\$ munny and $".length
+					),
+					new PartialBoundToken(
+						"little bit of \\$ munny and $some math".length,
+						"little bit of \\$ munny and $some math$".length
+					)
+				),
+			],
+		]);
+	});
+	test("ignores escaped bound (\\$) inside inline math block ($)", () => {
+		const doc = new MockText("little bit of $math with \\$ munny$ here");
+		const ranges: readonly MinimalSelectionRange[] = [
+			{
+				from: "little bit of $math".length,
+				to: "little bit of $math".length,
+			},
+			{
+				from: "little bit of $math with \\$ mun".length,
+				to: "little bit of $math with \\$ mun".length,
+			},
+		];
+
+		const bound_range = new BoundTokenPair(
+			new PartialBoundToken(
+				"little bit of ".length,
+				"little bit of $".length
+			),
+			new PartialBoundToken(
+				"little bit of $math with \\$ munny".length,
+				"little bit of $math with \\$ munny$".length
+			)
+		);
+		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
+			[bound_range],
+			[bound_range],
+		]);
+	});
 });
 
 class MockText implements MinimalText {

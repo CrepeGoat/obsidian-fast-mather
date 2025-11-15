@@ -169,7 +169,7 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 	let i_doc = 0;
 	while (i_doc < doc.length) {
 		// scan for bounds (also increments i_doc)
-		for (let bound_text of ["$$", "$", "\n", undefined]) {
+		for (let bound_text of ["$$", "\\", "$", "\n", undefined]) {
 			// terminating condition
 			if (bound_text === undefined) {
 				i_doc++;
@@ -180,6 +180,12 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 				doc.sliceString(i_doc, i_doc + bound_text.length) !== bound_text
 			) {
 				continue;
+			}
+
+			// ignore escape sequences
+			if (bound_text === "\\") {
+				i_doc += 2;
+				break;
 			}
 
 			let last_bound_text = result[result.length - 1]?.text(doc);
