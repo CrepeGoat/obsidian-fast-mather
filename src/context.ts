@@ -1,24 +1,5 @@
 import { strict as assert } from "assert";
 
-export function getContextBoundsAtSelection(
-	doc: MinimalText,
-	ranges: readonly MinimalSelectionRange[]
-): BoundTokenPair[][] {
-	const bounds = parseContextTokens(doc);
-	const positions = ranges.flatMap((range) => [range.from, range.to]);
-	const pos_bound_indices = bisectPositionsToBounds(bounds, positions);
-	const pos_bound_stacks = getBoundsAbout(bounds, pos_bound_indices);
-
-	let range_bound_stacks = [];
-	for (let i = 1; i < pos_bound_stacks.length; i = i + 2) {
-		range_bound_stacks.push(
-			longestCommonPrefix(pos_bound_stacks[i - 1]!, pos_bound_stacks[i]!)
-		);
-	}
-
-	return range_bound_stacks;
-}
-
 export function getMajorType(
 	doc: MinimalText,
 	bound_stack: readonly BoundTokenPair[]
@@ -43,6 +24,25 @@ export function getMajorType(
 	}
 
 	return result;
+}
+
+export function getContextBoundsAtSelection(
+	doc: MinimalText,
+	ranges: readonly MinimalSelectionRange[]
+): BoundTokenPair[][] {
+	const bounds = parseContextTokens(doc);
+	const positions = ranges.flatMap((range) => [range.from, range.to]);
+	const pos_bound_indices = bisectPositionsToBounds(bounds, positions);
+	const pos_bound_stacks = getBoundsAbout(bounds, pos_bound_indices);
+
+	let range_bound_stacks = [];
+	for (let i = 1; i < pos_bound_stacks.length; i = i + 2) {
+		range_bound_stacks.push(
+			longestCommonPrefix(pos_bound_stacks[i - 1]!, pos_bound_stacks[i]!)
+		);
+	}
+
+	return range_bound_stacks;
 }
 
 function longestCommonPrefix<T>(a1: readonly T[], a2: readonly T[]): T[] {
@@ -169,7 +169,7 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 	let i_doc = 0;
 	while (i_doc < doc.length) {
 		// scan for bounds (also increments i_doc)
-		for (let bound_text of ["$$", "$", "\n", undefined]) {
+		for (let bound_text of ["$$", "\\", "$", "\n", undefined]) {
 			// terminating condition
 			if (bound_text === undefined) {
 				i_doc++;
@@ -180,6 +180,12 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 				doc.sliceString(i_doc, i_doc + bound_text.length) !== bound_text
 			) {
 				continue;
+			}
+
+			// ignore escape sequences
+			if (bound_text === "\\") {
+				i_doc += 2;
+				break;
 			}
 
 			let last_bound_text = result[result.length - 1]?.text(doc);
