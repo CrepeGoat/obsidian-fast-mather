@@ -281,6 +281,30 @@ export default class FastMather extends Plugin {
 				) {
 					return true;
 				}
+				if (
+					this.expandText(
+						view,
+						cursorPos,
+						"sub",
+						"_{}",
+						"_{".length,
+						true
+					)
+				) {
+					return true;
+				}
+				if (
+					this.expandText(
+						view,
+						cursorPos,
+						"tothe",
+						"^{}",
+						"^{".length,
+						true
+					)
+				) {
+					return true;
+				}
 				for (let char of "abcdefghijklmnopqrstuvwxyz") {
 					if (
 						this.expandText(
@@ -330,7 +354,8 @@ export default class FastMather extends Plugin {
 		cursorPos: number,
 		textCode: string,
 		expandedText: string,
-		newCursorPos: number
+		newCursorPos: number,
+		trim_leading_space: boolean = false
 	) {
 		const doc = view.state.doc;
 		if (
@@ -344,9 +369,23 @@ export default class FastMather extends Plugin {
 				cursorPos === textCode.length) &&
 			doc.sliceString(cursorPos - textCode.length, cursorPos) === textCode
 		) {
+			let space_count = 0;
+			if (trim_leading_space) {
+				while (
+					doc
+						.sliceString(
+							cursorPos - textCode.length - space_count - 1,
+							cursorPos - textCode.length - space_count
+						)
+						.match("[ \t]")
+				) {
+					space_count += 1;
+				}
+			}
+
 			this.replaceRange(
 				view,
-				cursorPos - textCode.length,
+				cursorPos - textCode.length - space_count,
 				cursorPos,
 				expandedText,
 				newCursorPos
