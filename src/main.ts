@@ -297,7 +297,7 @@ export default class FastMather extends Plugin {
 					this.expandText(
 						view,
 						cursorPos,
-						"pow",
+						"tothe",
 						"^{}",
 						"^{".length,
 						true
