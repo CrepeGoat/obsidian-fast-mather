@@ -175,87 +175,186 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 
 	let i_doc = 0;
 	while (i_doc < doc.length) {
-		// scan for bounds (also increments i_doc)
-		for (let bound_text of ["$$", "```", "\\", "$", "`", "\n", undefined]) {
-			// terminating condition
-			if (bound_text === undefined) {
-				i_doc++;
-				break;
-			}
-
-			if (
-				doc.sliceString(i_doc, i_doc + bound_text.length) !== bound_text
-			) {
-				continue;
-			}
-
-			// ignore escape sequences
-			if (bound_text === "\\") {
-				i_doc += 2;
-				break;
-			}
-
-			let last_bound_text = result[result.length - 1]?.text(doc);
-			let last_bound_type = result[result.length - 1]?.type;
-			if (
-				last_bound_text === "$$" &&
-				last_bound_type === BoundType.Opening &&
-				bound_text === "$"
-			) {
-				continue;
-			}
-			if (bound_text === "\n") {
-				if (
-					last_bound_text === "$" &&
-					last_bound_type === BoundType.Opening
-				) {
-					// a `$` terminated with a newline is not a bound
-					stack.pop();
-					result.pop();
-				}
-
-				if (
-					last_bound_text === "`" &&
-					last_bound_type === BoundType.Opening
-				) {
-					stack.pop();
-					result.push(
-						new ContextToken(
-							i_doc,
-							i_doc + bound_text.length,
-							BoundType.Closing
-						)
-					);
-				}
-
-				// newlines are not a bound -> ignore
-				continue;
-			}
-
-			let bound_type: BoundType;
-			if (
-				pushToBoundStack(
-					stack,
-					doc,
-					i_doc,
-					i_doc + bound_text.length
-				) === undefined
-			) {
-				bound_type = BoundType.Opening;
-			} else {
-				bound_type = BoundType.Closing;
-			}
-
-			result.push(
-				new ContextToken(i_doc, i_doc + bound_text.length, bound_type)
+		const activeContextTokenText = getActiveMajorContextToken(
+			doc,
+			stack
+		)?.text(doc);
+		if (activeContextTokenText === undefined) {
+			i_doc = parseContextTokenInText(doc, i_doc, stack, result);
+			continue;
+		}
+		if (["$$", "$"].includes(activeContextTokenText)) {
+			i_doc = parseContextTokenInMath(
+				doc,
+				i_doc,
+				stack,
+				result,
+				activeContextTokenText === "$" ? "inline" : "display"
 			);
-
-			// make sure not to interpret the same bound multiple times
-			i_doc = i_doc + bound_text.length;
-			break;
+			continue;
+		}
+		if (["```", "`"].includes(activeContextTokenText)) {
+			i_doc = parseContextTokenInCode(
+				doc,
+				i_doc,
+				stack,
+				result,
+				activeContextTokenText === "`" ? "inline" : "display"
+			);
+			continue;
 		}
 	}
 
+	return result;
+}
+
+function parseContextTokenInText(
+	doc: MinimalText,
+	i_doc: number,
+	stack: ContextToken[],
+	result: ContextToken[]
+): number {
+	// ignore escape sequences
+	if (doc.sliceString(i_doc, i_doc + 1) === "\\") {
+		return i_doc + 2;
+	}
+
+	let startBoundTokenTexts = ["$$", "```", "$", "`"];
+	for (let startBoundTokenText of startBoundTokenTexts) {
+		if (
+			doc.sliceString(i_doc, i_doc + startBoundTokenText.length) !==
+			startBoundTokenText
+		) {
+			continue;
+		}
+
+		const contextToken = new ContextToken(
+			i_doc,
+			i_doc + startBoundTokenText.length,
+			BoundType.Opening
+		);
+		stack.push(contextToken);
+		result.push(contextToken);
+		return i_doc + startBoundTokenText.length;
+	}
+
+	// if no bounds match, advance counter
+	return i_doc + 1;
+}
+
+function parseContextTokenInMath(
+	doc: MinimalText,
+	i_doc: number,
+	stack: ContextToken[],
+	result: ContextToken[],
+	boundType: "inline" | "display"
+): number {
+	// ignore escape sequences
+	if (doc.sliceString(i_doc, i_doc + 1) === "\\") {
+		return i_doc + 2;
+	}
+
+	let endBoundTokenText = undefined;
+	if (boundType === "inline") {
+		if (doc.sliceString(i_doc, i_doc + 1) === "\n") {
+			// newlines cancel inline math blocks completely
+			stack.pop();
+			result.pop();
+			return i_doc + 1;
+		}
+		endBoundTokenText = "$";
+	} else {
+		// if (boundType === "display") {
+		endBoundTokenText = "$$";
+	}
+
+	if (
+		doc.sliceString(i_doc, i_doc + endBoundTokenText.length) !==
+		endBoundTokenText
+	) {
+		return i_doc + 1;
+	}
+
+	stack.pop();
+	result.push(
+		new ContextToken(
+			i_doc,
+			i_doc + endBoundTokenText.length,
+			BoundType.Closing
+		)
+	);
+	return i_doc + endBoundTokenText.length;
+}
+
+function parseContextTokenInCode(
+	doc: MinimalText,
+	i_doc: number,
+	stack: ContextToken[],
+	result: ContextToken[],
+	boundType: "inline" | "display"
+): number {
+	// ignore escape sequences
+	if (doc.sliceString(i_doc, i_doc + 1) === "\\") {
+		return i_doc + 2;
+	}
+
+	let endBoundTokenTexts = [];
+	if (boundType === "inline") {
+		// newlines terminate inline code blocks
+		endBoundTokenTexts = ["`", "\n"];
+	} else {
+		// if (boundType === "display") {
+		endBoundTokenTexts = ["```"];
+	}
+
+	for (const endBoundTokenText of endBoundTokenTexts) {
+		if (
+			doc.sliceString(i_doc, i_doc + endBoundTokenText.length) !==
+			endBoundTokenText
+		) {
+			continue;
+		}
+
+		stack.pop();
+		result.push(
+			new ContextToken(
+				i_doc,
+				i_doc + endBoundTokenText.length,
+				BoundType.Closing
+			)
+		);
+		return i_doc + endBoundTokenText.length;
+	}
+
+	return i_doc + 1;
+}
+
+function getActiveMajorContextToken(
+	doc: MinimalText,
+	boundTokens: ContextToken[]
+): ContextToken | undefined {
+	let result = undefined;
+	for (const token of boundTokens) {
+		const tokenText = token.text(doc);
+		if (!["$$", "$", "```", "`", "\n"].includes(tokenText)) {
+			continue;
+		}
+		if (result === undefined) {
+			result = token;
+			continue;
+		}
+		const resultText = result.text(doc);
+		if (resultText === tokenText) {
+			result = undefined;
+			continue;
+		}
+		// note: inline code also terminates on newline
+		// (whereas inline math is cancelled completely -> no need to handle)
+		if (resultText === "`" && tokenText === "\n") {
+			result = undefined;
+			continue;
+		}
+	}
 	return result;
 }
 
