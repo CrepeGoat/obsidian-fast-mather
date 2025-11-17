@@ -175,6 +175,9 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 
 	let i_doc = 0;
 	while (i_doc < doc.length) {
+		// TODO check closing bounds first
+		// TODO then check all opening bounds based on major context
+
 		// simple parser only considers single non-nested sets of major bounds
 		// TODO allow nested bounds
 		assert(stack.length <= 1);
