@@ -20,6 +20,7 @@ import {
 	getContextBoundsAtSelection,
 	getMajorType,
 	MajorContextTypes,
+	BoundTokenPair,
 } from "src/context";
 
 import * as mathjaxCommandData from "./mathjax-supported-commands.json";
@@ -311,8 +312,8 @@ export default class FastMather extends Plugin {
 							view,
 							cursorPos,
 							char + char,
-							char.toUpperCase(),
-							1
+							char.toUpperCase() + " ",
+							2
 						)
 					) {
 						return true;
@@ -335,18 +336,71 @@ export default class FastMather extends Plugin {
 							view,
 							cursorPos,
 							command,
-							"\\" + command + "{}".repeat(arg_count),
-							("\\" + command + (arg_count === 0 ? "" : "{"))
-								.length
+							"\\" +
+								command +
+								"{}".repeat(arg_count) +
+								(arg_count === 0 ? " " : ""),
+							("\\" + command + 1).length
 						)
 					) {
 						return true;
 					}
 				}
+
+				if (doc.sliceString(cursorPos - 1, cursorPos) === " ") {
+					const jumpPos = this.getJumpPos(view, bound, cursorPos);
+					view.dispatch({
+						changes: [
+							{
+								from: cursorPos - 1,
+								to: cursorPos,
+								insert: "",
+							},
+							{
+								from: jumpPos,
+								to: jumpPos,
+								insert: " ",
+							},
+						],
+						// https://codemirror.net/docs/guide/#selection
+						selection: EditorSelection.create([
+							EditorSelection.cursor(jumpPos),
+						]),
+					});
+					return true;
+				}
 			}
 		}
 
 		return false;
+	}
+
+	getJumpPos(
+		view: EditorView,
+		bound: BoundTokenPair | undefined,
+		cursorPos: number
+	): number {
+		const doc = view.state.doc;
+
+		let delete_prev = false;
+		if (doc.sliceString(cursorPos - 1, cursorPos) === " ") {
+			delete_prev = true;
+		}
+
+		let boundPos: number;
+		if (cursorPos === bound?.closing?.from) {
+			boundPos = bound.closing.to;
+		} else {
+			boundPos = bound?.closing?.from ?? doc.length;
+		}
+
+		const textBetween = doc.sliceString(cursorPos + 1, boundPos);
+		const firstNewline = textBetween.indexOf("\n");
+		if (firstNewline >= 0) {
+			return firstNewline + cursorPos + 1;
+		}
+
+		return boundPos;
 	}
 
 	expandText(
