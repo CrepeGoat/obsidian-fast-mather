@@ -175,10 +175,11 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 
 	let i_doc = 0;
 	while (i_doc < doc.length) {
-		const activeContextTokenText = getActiveMajorContextToken(
-			doc,
-			stack
-		)?.text(doc);
+		// simple parser only considers single non-nested sets of major bounds
+		// TODO allow nested bounds
+		assert(stack.length <= 1);
+		const activeContextTokenText = stack[0]?.text(doc);
+
 		if (activeContextTokenText === undefined) {
 			i_doc =
 				parseContextTokenInText(doc, i_doc, stack, result) ?? i_doc + 1;
@@ -294,35 +295,6 @@ function parseContextTokenInCode(
 	}
 
 	return undefined;
-}
-
-function getActiveMajorContextToken(
-	doc: MinimalText,
-	boundTokens: ContextToken[]
-): ContextToken | undefined {
-	let result = undefined;
-	for (const token of boundTokens) {
-		const tokenText = token.text(doc);
-		if (!["$$", "$", "```", "`", "\n"].includes(tokenText)) {
-			continue;
-		}
-		if (result === undefined) {
-			result = token;
-			continue;
-		}
-		const resultText = result.text(doc);
-		if (resultText === tokenText) {
-			result = undefined;
-			continue;
-		}
-		// note: inline code also terminates on newline
-		// (whereas inline math is cancelled completely -> no need to handle)
-		if (resultText === "`" && tokenText === "\n") {
-			result = undefined;
-			continue;
-		}
-	}
-	return result;
 }
 
 function textAtEquals(doc: MinimalText, i_doc: number, text: string) {
