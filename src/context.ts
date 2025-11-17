@@ -235,6 +235,31 @@ function parseContextTokenInText(
 	return undefined;
 }
 
+function parseContextTokenInEmbeddedText(
+	doc: MinimalText,
+	i_doc: number,
+	stack: ContextToken[],
+	result: ContextToken[]
+): number | undefined {
+	// ignore escape sequences
+	if (textAtEquals(doc, i_doc, "\\")) {
+		return i_doc + 2;
+	}
+
+	const startBoundTokenText = "$";
+	if (textAtEquals(doc, i_doc, startBoundTokenText)) {
+		pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
+		return i_doc + startBoundTokenText.length;
+	}
+	const endBoundTokenText = "}";
+	if (textAtEquals(doc, i_doc, endBoundTokenText)) {
+		pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
+		return i_doc + endBoundTokenText.length;
+	}
+
+	return undefined;
+}
+
 function parseContextTokenInMath(
 	doc: MinimalText,
 	i_doc: number,
@@ -242,6 +267,11 @@ function parseContextTokenInMath(
 	result: ContextToken[],
 	boundType: "inline" | "display"
 ): number | undefined {
+	if (textAtEquals(doc, i_doc, "\\text{")) {
+		pushOpeningToken(stack, result, i_doc, "\\text{".length);
+		return i_doc + "\\text{".length;
+	}
+
 	// ignore escape sequences
 	if (textAtEquals(doc, i_doc, "\\")) {
 		return i_doc + 2;
