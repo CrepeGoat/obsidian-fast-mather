@@ -21,6 +21,13 @@ export function getMajorType(
 			result = [MajorContextTypes.Math, bound];
 			continue;
 		}
+		if (
+			result[0] === MajorContextTypes.Text &&
+			(text === "```" || text === "`")
+		) {
+			result = [MajorContextTypes.Code, bound];
+			continue;
+		}
 	}
 
 	return result;
@@ -169,7 +176,7 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 	let i_doc = 0;
 	while (i_doc < doc.length) {
 		// scan for bounds (also increments i_doc)
-		for (let bound_text of ["$$", "\\", "$", "\n", undefined]) {
+		for (let bound_text of ["$$", "```", "\\", "$", "`", "\n", undefined]) {
 			// terminating condition
 			if (bound_text === undefined) {
 				i_doc++;
@@ -206,6 +213,21 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 					stack.pop();
 					result.pop();
 				}
+
+				if (
+					last_bound_text === "`" &&
+					last_bound_type === BoundType.Opening
+				) {
+					stack.pop();
+					result.push(
+						new ContextToken(
+							i_doc,
+							i_doc + bound_text.length,
+							BoundType.Closing
+						)
+					);
+				}
+
 				// newlines are not a bound -> ignore
 				continue;
 			}
@@ -321,6 +343,7 @@ export interface MinimalSelectionRange {
 export enum MajorContextTypes {
 	Text,
 	Math,
+	Code,
 }
 
 export enum BoundType {
