@@ -1062,7 +1062,7 @@
         {"command": "symsfup", "argument_count": null},
         {"command": "symtt", "argument_count": null},
         {"command": "symup", "argument_count": null},
-        {"command": "tag", "argument_count": null},
+        {"command": "tag", "argument_count": 1},
         {"command": "tan", "argument_count": null},
         {"command": "tangent", "argument_count": null},
         {"command": "tanh", "argument_count": null},
