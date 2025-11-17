@@ -180,27 +180,30 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 			stack
 		)?.text(doc);
 		if (activeContextTokenText === undefined) {
-			i_doc = parseContextTokenInText(doc, i_doc, stack, result);
+			i_doc =
+				parseContextTokenInText(doc, i_doc, stack, result) ?? i_doc + 1;
 			continue;
 		}
 		if (["$$", "$"].includes(activeContextTokenText)) {
-			i_doc = parseContextTokenInMath(
-				doc,
-				i_doc,
-				stack,
-				result,
-				activeContextTokenText === "$" ? "inline" : "display"
-			);
+			i_doc =
+				parseContextTokenInMath(
+					doc,
+					i_doc,
+					stack,
+					result,
+					activeContextTokenText === "$" ? "inline" : "display"
+				) ?? i_doc + 1;
 			continue;
 		}
 		if (["```", "`"].includes(activeContextTokenText)) {
-			i_doc = parseContextTokenInCode(
-				doc,
-				i_doc,
-				stack,
-				result,
-				activeContextTokenText === "`" ? "inline" : "display"
-			);
+			i_doc =
+				parseContextTokenInCode(
+					doc,
+					i_doc,
+					stack,
+					result,
+					activeContextTokenText === "`" ? "inline" : "display"
+				) ?? i_doc + 1;
 			continue;
 		}
 	}
@@ -213,7 +216,7 @@ function parseContextTokenInText(
 	i_doc: number,
 	stack: ContextToken[],
 	result: ContextToken[]
-): number {
+): number | undefined {
 	// ignore escape sequences
 	if (textAtEquals(doc, i_doc, "\\")) {
 		return i_doc + 2;
@@ -229,8 +232,7 @@ function parseContextTokenInText(
 		return i_doc + startBoundTokenText.length;
 	}
 
-	// if no bounds match, advance counter
-	return i_doc + 1;
+	return undefined;
 }
 
 function parseContextTokenInMath(
@@ -239,7 +241,7 @@ function parseContextTokenInMath(
 	stack: ContextToken[],
 	result: ContextToken[],
 	boundType: "inline" | "display"
-): number {
+): number | undefined {
 	// ignore escape sequences
 	if (textAtEquals(doc, i_doc, "\\")) {
 		return i_doc + 2;
@@ -254,7 +256,7 @@ function parseContextTokenInMath(
 	}
 
 	if (!textAtEquals(doc, i_doc, endBoundTokenText)) {
-		return i_doc + 1;
+		return undefined;
 	}
 
 	pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
@@ -267,7 +269,7 @@ function parseContextTokenInCode(
 	stack: ContextToken[],
 	result: ContextToken[],
 	boundType: "inline" | "display"
-): number {
+): number | undefined {
 	// ignore escape sequences
 	if (textAtEquals(doc, i_doc, "\\")) {
 		return i_doc + 2;
@@ -291,7 +293,7 @@ function parseContextTokenInCode(
 		return i_doc + endBoundTokenText.length;
 	}
 
-	return i_doc + 1;
+	return undefined;
 }
 
 function getActiveMajorContextToken(
