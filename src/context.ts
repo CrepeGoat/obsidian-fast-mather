@@ -215,16 +215,13 @@ function parseContextTokenInText(
 	result: ContextToken[]
 ): number {
 	// ignore escape sequences
-	if (doc.sliceString(i_doc, i_doc + 1) === "\\") {
+	if (textAtEquals(doc, i_doc, "\\")) {
 		return i_doc + 2;
 	}
 
 	let startBoundTokenTexts = ["$$", "```", "$", "`"];
 	for (let startBoundTokenText of startBoundTokenTexts) {
-		if (
-			doc.sliceString(i_doc, i_doc + startBoundTokenText.length) !==
-			startBoundTokenText
-		) {
+		if (!textAtEquals(doc, i_doc, startBoundTokenText)) {
 			continue;
 		}
 
@@ -244,7 +241,7 @@ function parseContextTokenInMath(
 	boundType: "inline" | "display"
 ): number {
 	// ignore escape sequences
-	if (doc.sliceString(i_doc, i_doc + 1) === "\\") {
+	if (textAtEquals(doc, i_doc, "\\")) {
 		return i_doc + 2;
 	}
 
@@ -256,10 +253,7 @@ function parseContextTokenInMath(
 		endBoundTokenText = "$$";
 	}
 
-	if (
-		doc.sliceString(i_doc, i_doc + endBoundTokenText.length) !==
-		endBoundTokenText
-	) {
+	if (!textAtEquals(doc, i_doc, endBoundTokenText)) {
 		return i_doc + 1;
 	}
 
@@ -275,7 +269,7 @@ function parseContextTokenInCode(
 	boundType: "inline" | "display"
 ): number {
 	// ignore escape sequences
-	if (doc.sliceString(i_doc, i_doc + 1) === "\\") {
+	if (textAtEquals(doc, i_doc, "\\")) {
 		return i_doc + 2;
 	}
 
@@ -289,10 +283,7 @@ function parseContextTokenInCode(
 	}
 
 	for (const endBoundTokenText of endBoundTokenTexts) {
-		if (
-			doc.sliceString(i_doc, i_doc + endBoundTokenText.length) !==
-			endBoundTokenText
-		) {
+		if (!textAtEquals(doc, i_doc, endBoundTokenText)) {
 			continue;
 		}
 
@@ -330,6 +321,10 @@ function getActiveMajorContextToken(
 		}
 	}
 	return result;
+}
+
+function textAtEquals(doc: MinimalText, i_doc: number, text: string) {
+	return doc.sliceString(i_doc, i_doc + text.length) === text;
 }
 
 function pushOpeningToken(
