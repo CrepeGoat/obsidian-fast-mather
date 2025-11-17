@@ -292,6 +292,65 @@ describe("getContextBoundsAtSelection", () => {
 			[bound_range],
 		]);
 	});
+
+	test("handles an inline code block (`)", () => {
+		const doc = new MockText("code `abc`, nicely formatted\n");
+		const ranges: readonly MinimalSelectionRange[] = [
+			{
+				from: "code ".length,
+				to: "code ".length,
+			},
+			{
+				from: "code `a".length,
+				to: "code `abc".length,
+			},
+			{
+				from: "code `abc`, nicely".length,
+				to: "code `abc`, nicely".length,
+			},
+		];
+
+		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
+			[],
+			[
+				new BoundTokenPair(
+					new PartialBoundToken("code ".length, "code `".length),
+					new PartialBoundToken(
+						"code `abc".length,
+						"code `abc`".length
+					)
+				),
+			],
+			[],
+		]);
+	});
+
+	test("returns one bound when inside a display code block (```)", () => {
+		const doc = new MockText(
+			"display code:\n```\nabc\n```\nnicely formatted"
+		);
+		const ranges: readonly MinimalSelectionRange[] = [
+			{
+				from: "display code:\n```\na".length,
+				to: "display code:\n```\nab".length,
+			},
+		];
+
+		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
+			[
+				new BoundTokenPair(
+					new PartialBoundToken(
+						"display code:\n".length,
+						"display code:\n```".length
+					),
+					new PartialBoundToken(
+						"display code:\n```\nabc\n".length,
+						"display code:\n```\nabc\n```".length
+					)
+				),
+			],
+		]);
+	});
 });
 
 class MockText implements MinimalText {
