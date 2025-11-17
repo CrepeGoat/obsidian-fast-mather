@@ -228,13 +228,7 @@ function parseContextTokenInText(
 			continue;
 		}
 
-		const contextToken = new ContextToken(
-			i_doc,
-			i_doc + startBoundTokenText.length,
-			BoundType.Opening
-		);
-		stack.push(contextToken);
-		result.push(contextToken);
+		pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
 		return i_doc + startBoundTokenText.length;
 	}
 
@@ -269,14 +263,7 @@ function parseContextTokenInMath(
 		return i_doc + 1;
 	}
 
-	stack.pop();
-	result.push(
-		new ContextToken(
-			i_doc,
-			i_doc + endBoundTokenText.length,
-			BoundType.Closing
-		)
-	);
+	pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
 	return i_doc + endBoundTokenText.length;
 }
 
@@ -309,14 +296,7 @@ function parseContextTokenInCode(
 			continue;
 		}
 
-		stack.pop();
-		result.push(
-			new ContextToken(
-				i_doc,
-				i_doc + endBoundTokenText.length,
-				BoundType.Closing
-			)
-		);
+		pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
 		return i_doc + endBoundTokenText.length;
 	}
 
@@ -352,21 +332,29 @@ function getActiveMajorContextToken(
 	return result;
 }
 
-function pushToBoundStack(
+function pushOpeningToken(
 	stack: ContextToken[],
-	doc: MinimalText,
-	from: number,
-	to: number
-): ContextToken | undefined {
-	const text = doc.sliceString(from, to);
-	if (
-		stack[stack.length - 1]?.type === BoundType.Opening &&
-		stack[stack.length - 1]?.text(doc) === text
-	) {
-		return stack.pop();
-	} else {
-		stack.push(new ContextToken(from, to, BoundType.Opening));
-	}
+	result: ContextToken[],
+	i_doc: number,
+	length: number
+) {
+	const contextToken = new ContextToken(
+		i_doc,
+		i_doc + length,
+		BoundType.Opening
+	);
+	stack.push(contextToken);
+	result.push(contextToken);
+}
+
+function pushClosingToken(
+	stack: ContextToken[],
+	result: ContextToken[],
+	i_doc: number,
+	length: number
+) {
+	stack.pop();
+	result.push(new ContextToken(i_doc, i_doc + length, BoundType.Closing));
 }
 
 export class BoundTokenPair {
