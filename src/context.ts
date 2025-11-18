@@ -238,20 +238,27 @@ function parseOpeningContextTokenInNestedText(
 	doc: MinimalText,
 	i_doc: number,
 	stack: ContextToken[],
-	result: ContextToken[]
+	result: ContextToken[],
+	i_stackActiveBound: number
 ): number | undefined {
 	// ignore escape sequences
 	if (textAtEquals(doc, i_doc, "\\")) {
 		return i_doc + 2;
 	}
 
-	let startBoundTokenText = "$";
-	if (!textAtEquals(doc, i_doc, startBoundTokenText)) {
-		return undefined;
+	const startBoundTokenText = stack[i_stackActiveBound]!.text(doc);
+	assert(["$$", "$"].includes(startBoundTokenText));
+	if (textAtEquals(doc, i_doc, startBoundTokenText)) {
+		pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
+		return i_doc + startBoundTokenText.length;
 	}
 
-	pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
-	return i_doc + startBoundTokenText.length;
+	const endBoundTokenText = "}";
+	if (textAtEquals(doc, i_doc, endBoundTokenText)) {
+		pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
+		return i_doc + endBoundTokenText.length;
+	}
+	return undefined;
 }
 
 function parseContextTokenInInlineMath(
@@ -319,7 +326,13 @@ function parseContextTokenInDisplayMath(
 			activeMathOpeningBoundPos
 		);
 	} else {
-		return parseOpeningContextTokenInNestedText(doc, i_doc, stack, result);
+		return parseOpeningContextTokenInNestedText(
+			doc,
+			i_doc,
+			stack,
+			result,
+			activeMathOpeningBoundPos
+		);
 	}
 }
 
