@@ -293,6 +293,148 @@ describe("getContextBoundsAtSelection", () => {
 		]);
 	});
 
+	test("identifies text inside a display math block ($$)", () => {
+		const doc = new MockText("$$\na := \\text{text and stuff}\n$$");
+
+		const ranges: readonly MinimalSelectionRange[] = [
+			{
+				from: "$$\na :=".length,
+				to: "$$\na :=".length,
+			},
+			{
+				from: "$$\na := \\text{text".length,
+				to: "$$\na := \\text{text".length,
+			},
+			{
+				from: "$$\na := \\text{text and stuff}\n".length,
+				to: "$$\na := \\text{text and stuff}\n".length,
+			},
+		];
+
+		const bound_ranges = [
+			new BoundTokenPair(
+				new PartialBoundToken("".length, "$$".length),
+				new PartialBoundToken(
+					"$$\na := \\text{text and stuff}\n".length,
+					"$$\na := \\text{text and stuff}\n$$".length
+				)
+			),
+			new BoundTokenPair(
+				new PartialBoundToken(
+					"$$\na := ".length,
+					"$$\na := \\text{".length
+				),
+				new PartialBoundToken(
+					"$$\na := \\text{text and stuff".length,
+					"$$\na := \\text{text and stuff}".length
+				)
+			),
+		];
+		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
+			bound_ranges.slice(0, 1),
+			bound_ranges.slice(0, 2),
+			bound_ranges.slice(0, 1),
+		]);
+	});
+
+	test("allows simple nested equations and text inside a display math block ($$)", () => {
+		const doc = new MockText(
+			"$$\na := \\text{text and $b = e$ and stuff}\n$$"
+		);
+
+		const ranges: readonly MinimalSelectionRange[] = [
+			{
+				from: "$$\na :=".length,
+				to: "$$\na :=".length,
+			},
+			{
+				from: "$$\na := \\text{text".length,
+				to: "$$\na := \\text{text".length,
+			},
+			{
+				from: "$$\na := \\text{text and $b =".length,
+				to: "$$\na := \\text{text and $b =".length,
+			},
+			{
+				from: "$$\na := \\text{text and $b = e$ and".length,
+				to: "$$\na := \\text{text and $b = e$ and".length,
+			},
+			{
+				from: "$$\na := \\text{text and $b = e$ and stuff}\n".length,
+				to: "$$\na := \\text{text and $b = e$ and stuff}\n".length,
+			},
+		];
+
+		const bound_ranges = [
+			new BoundTokenPair(
+				new PartialBoundToken("".length, "$$".length),
+				new PartialBoundToken(
+					"$$\na := \\text{text and $b = e$ and stuff}\n".length,
+					"$$\na := \\text{text and $b = e$ and stuff}\n$$".length
+				)
+			),
+			new BoundTokenPair(
+				new PartialBoundToken(
+					"$$\na := ".length,
+					"$$\na := \\text{".length
+				),
+				new PartialBoundToken(
+					"$$\na := \\text{text and $b = e$ and stuff".length,
+					"$$\na := \\text{text and $b = e$ and stuff}".length
+				)
+			),
+			new BoundTokenPair(
+				new PartialBoundToken(
+					"$$\na := \\text{text and ".length,
+					"$$\na := \\text{text and $".length
+				),
+				new PartialBoundToken(
+					"$$\na := \\text{text and $b = e".length,
+					"$$\na := \\text{text and $b = e$".length
+				)
+			),
+		];
+		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
+			bound_ranges.slice(0, 1),
+			bound_ranges.slice(0, 2),
+			bound_ranges.slice(0, 3),
+			bound_ranges.slice(0, 2),
+			bound_ranges.slice(0, 1),
+		]);
+	});
+
+	test("handles an inline code block (`)", () => {
+		const doc = new MockText("code `abc`, nicely formatted\n");
+		const ranges: readonly MinimalSelectionRange[] = [
+			{
+				from: "code ".length,
+				to: "code ".length,
+			},
+			{
+				from: "code `a".length,
+				to: "code `abc".length,
+			},
+			{
+				from: "code `abc`, nicely".length,
+				to: "code `abc`, nicely".length,
+			},
+		];
+
+		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
+			[],
+			[
+				new BoundTokenPair(
+					new PartialBoundToken("code ".length, "code `".length),
+					new PartialBoundToken(
+						"code `abc".length,
+						"code `abc`".length
+					)
+				),
+			],
+			[],
+		]);
+	});
+
 	test("allows nested equations and text inside a display math block ($$)", () => {
 		const doc = new MockText(
 			"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$ and stuff}\n$$"
