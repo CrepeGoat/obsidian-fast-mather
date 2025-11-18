@@ -175,38 +175,33 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 
 	let i_doc = 0;
 	while (i_doc < doc.length) {
-		// TODO check closing bounds first
-		// TODO then check all opening bounds based on major context
+		const firstContextTokenText = stack[0]?.text(doc);
 
-		// simple parser only considers single non-nested sets of major bounds
-		// TODO allow nested bounds
-		assert(stack.length <= 1);
-		const activeContextTokenText = stack[0]?.text(doc);
-
-		if (activeContextTokenText === undefined) {
+		if (firstContextTokenText === undefined) {
 			i_doc =
 				parseContextTokenInText(doc, i_doc, stack, result) ?? i_doc + 1;
 			continue;
 		}
-		if (["$$", "$"].includes(activeContextTokenText)) {
+		if (firstContextTokenText === "$") {
 			i_doc =
-				parseContextTokenInMath(
-					doc,
-					i_doc,
-					stack,
-					result,
-					activeContextTokenText === "$" ? "inline" : "display"
-				) ?? i_doc + 1;
+				parseContextTokenInInlineMath(doc, i_doc, stack, result) ??
+				i_doc + 1;
 			continue;
 		}
-		if (["```", "`"].includes(activeContextTokenText)) {
+		if (firstContextTokenText === "$$") {
+			i_doc =
+				parseContextTokenInDisplayMath(doc, i_doc, stack, result) ??
+				i_doc + 1;
+			continue;
+		}
+		if (["```", "`"].includes(firstContextTokenText)) {
 			i_doc =
 				parseContextTokenInCode(
 					doc,
 					i_doc,
 					stack,
 					result,
-					activeContextTokenText === "`" ? "inline" : "display"
+					firstContextTokenText === "`" ? "inline" : "display"
 				) ?? i_doc + 1;
 			continue;
 		}
@@ -239,38 +234,49 @@ function parseContextTokenInText(
 	return undefined;
 }
 
-function parseContextTokenInMath(
+function parseContextTokenInInlineMath(
 	doc: MinimalText,
 	i_doc: number,
 	stack: ContextToken[],
-	result: ContextToken[],
-	boundType: "inline" | "display"
+	result: ContextToken[]
 ): number | undefined {
 	// ignore escape sequences
 	if (textAtEquals(doc, i_doc, "\\")) {
 		return i_doc + 2;
 	}
 
-	let endBoundTokenText = undefined;
-	if (boundType === "inline") {
-		if (textAtEquals(doc, i_doc, "\n")) {
-			// newlines cancel inline math blocks completely
-			stack.pop();
-			result.pop();
-			return i_doc + 1;
-		}
-		endBoundTokenText = "$";
-	} else {
-		// if (boundType === "display") {
-		endBoundTokenText = "$$";
+	if (textAtEquals(doc, i_doc, "\n")) {
+		// newlines cancel inline math blocks completely
+		stack.pop();
+		result.pop();
+		return i_doc + 1;
 	}
 
-	if (!textAtEquals(doc, i_doc, endBoundTokenText)) {
+	if (!textAtEquals(doc, i_doc, "$")) {
 		return undefined;
 	}
 
-	pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
-	return i_doc + endBoundTokenText.length;
+	pushClosingToken(stack, result, i_doc, "$".length);
+	return i_doc + "$".length;
+}
+
+function parseContextTokenInDisplayMath(
+	doc: MinimalText,
+	i_doc: number,
+	stack: ContextToken[],
+	result: ContextToken[]
+): number | undefined {
+	// ignore escape sequences
+	if (textAtEquals(doc, i_doc, "\\")) {
+		return i_doc + 2;
+	}
+
+	if (!textAtEquals(doc, i_doc, "$$")) {
+		return undefined;
+	}
+
+	pushClosingToken(stack, result, i_doc, "$$".length);
+	return i_doc + "$$".length;
 }
 
 function parseContextTokenInCode(
