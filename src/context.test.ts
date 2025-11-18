@@ -59,7 +59,7 @@ describe("getContextBoundsAtSelection", () => {
 		]);
 	});
 
-	test("returns one bound when inside a display math block ($$)", () => {
+	test("handles a display math block ($$)", () => {
 		const doc = new MockText(
 			"display math:\n$$\n1 + 1 = 2\n$$\nnicely formatted"
 		);
@@ -86,7 +86,7 @@ describe("getContextBoundsAtSelection", () => {
 		]);
 	});
 
-	test("handles multiple inline math blocks", () => {
+	test("handles multiple inline math blocks ($)", () => {
 		const doc = new MockText(
 			"math 1 $1 + 1 = 2$ followed by math 2 $1 - 1 = 0$"
 		);
@@ -126,7 +126,7 @@ describe("getContextBoundsAtSelection", () => {
 		]);
 	});
 
-	test("handles multiple display math blocks", () => {
+	test("handles multiple display math blocks ($$)", () => {
 		const doc = new MockText(
 			"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n$$1 - 1 = 0$$"
 		);
@@ -233,6 +233,7 @@ describe("getContextBoundsAtSelection", () => {
 			[],
 		]);
 	});
+
 	test("ignores escaped bound (\\$) before inline math block ($)", () => {
 		const doc = new MockText(
 			"little bit of \\$ munny and $some math$ afterwards"
@@ -264,6 +265,7 @@ describe("getContextBoundsAtSelection", () => {
 			],
 		]);
 	});
+
 	test("ignores escaped bound (\\$) inside inline math block ($)", () => {
 		const doc = new MockText("little bit of $math with \\$ munny$ here");
 		const ranges: readonly MinimalSelectionRange[] = [
