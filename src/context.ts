@@ -246,8 +246,7 @@ function parseOpeningContextTokenInNestedText(
 		return i_doc + 2;
 	}
 
-	const startBoundTokenText = stack[i_stackActiveBound]!.text(doc);
-	assert(["$$", "$"].includes(startBoundTokenText));
+	const startBoundTokenText = "$";
 	if (textAtEquals(doc, i_doc, startBoundTokenText)) {
 		pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
 		return i_doc + startBoundTokenText.length;
@@ -304,6 +303,30 @@ function parseContextTokenInDisplayMath(
 	const closingBoundTokenText = stack[activeMathOpeningBoundPos]!.text(doc);
 	assert(["$$", "$"].includes(closingBoundTokenText));
 
+	let out = undefined;
+	const mode: "math" | "text" =
+		lastNestedTextToken > lastNestedMathToken ? "text" : "math";
+	if (mode === "math") {
+		out = parseSubContextTokenInMath(
+			doc,
+			i_doc,
+			stack,
+			result,
+			activeMathOpeningBoundPos
+		);
+	} else {
+		out = parseOpeningContextTokenInNestedText(
+			doc,
+			i_doc,
+			stack,
+			result,
+			activeMathOpeningBoundPos
+		);
+	}
+	if (out !== undefined) {
+		return out;
+	}
+
 	if (
 		textAtEquals(doc, i_doc, closingBoundTokenText) &&
 		!textAtEquals(doc, i_doc - 1, "\\")
@@ -315,25 +338,7 @@ function parseContextTokenInDisplayMath(
 		return i_doc + closingBoundTokenText.length;
 	}
 
-	const mode: "math" | "text" =
-		lastNestedTextToken > lastNestedMathToken ? "text" : "math";
-	if (mode === "math") {
-		return parseSubContextTokenInMath(
-			doc,
-			i_doc,
-			stack,
-			result,
-			activeMathOpeningBoundPos
-		);
-	} else {
-		return parseOpeningContextTokenInNestedText(
-			doc,
-			i_doc,
-			stack,
-			result,
-			activeMathOpeningBoundPos
-		);
-	}
+	return undefined;
 }
 
 function parseSubContextTokenInMath(
