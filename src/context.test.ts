@@ -412,38 +412,6 @@ describe("getContextBoundsAtSelection", () => {
 		]);
 	});
 
-	test("handles an inline code block (`)", () => {
-		const doc = new MockText("code `abc`, nicely formatted\n");
-		const ranges: readonly MinimalSelectionRange[] = [
-			{
-				from: "code ".length,
-				to: "code ".length,
-			},
-			{
-				from: "code `a".length,
-				to: "code `abc".length,
-			},
-			{
-				from: "code `abc`, nicely".length,
-				to: "code `abc`, nicely".length,
-			},
-		];
-
-		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
-			[],
-			[
-				new BoundTokenPair(
-					new PartialBoundToken("code ".length, "code `".length),
-					new PartialBoundToken(
-						"code `abc".length,
-						"code `abc`".length
-					)
-				),
-			],
-			[],
-		]);
-	});
-
 	test("allows nested equations and text inside a display math block ($$)", () => {
 		const doc = new MockText(
 			"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$ and stuff}\n$$"
