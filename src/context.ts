@@ -234,12 +234,34 @@ function parseContextTokenInText(
 	return undefined;
 }
 
+function parseOpeningContextTokenInNestedText(
+	doc: MinimalText,
+	i_doc: number,
+	stack: ContextToken[],
+	result: ContextToken[]
+): number | undefined {
+	// ignore escape sequences
+	if (textAtEquals(doc, i_doc, "\\")) {
+		return i_doc + 2;
+	}
+
+	let startBoundTokenText = "$";
+	if (!textAtEquals(doc, i_doc, startBoundTokenText)) {
+		return undefined;
+	}
+
+	pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
+	return i_doc + startBoundTokenText.length;
+}
+
 function parseContextTokenInInlineMath(
 	doc: MinimalText,
 	i_doc: number,
 	stack: ContextToken[],
 	result: ContextToken[]
 ): number | undefined {
+	assert(stack[0]?.text(doc) === "$");
+
 	// ignore escape sequences
 	if (textAtEquals(doc, i_doc, "\\")) {
 		return i_doc + 2;
@@ -266,17 +288,69 @@ function parseContextTokenInDisplayMath(
 	stack: ContextToken[],
 	result: ContextToken[]
 ): number | undefined {
-	// ignore escape sequences
-	if (textAtEquals(doc, i_doc, "\\")) {
-		return i_doc + 2;
+	assert(stack[0]?.text(doc) === "$$");
+
+	const lastNestedMathToken = stack.findLastIndex(
+		(token) => token.text(doc) === "$"
+	);
+	const lastNestedTextToken =
+		1 +
+		lastNestedMathToken +
+		stack
+			.slice(lastNestedMathToken + 1)
+			.findIndex((token) => token.text(doc) === "\\text{");
+	const activeMathOpeningBoundPos =
+		lastNestedMathToken === -1 ? 0 : lastNestedMathToken;
+	const closingBoundTokenText = stack[activeMathOpeningBoundPos]!.text(doc);
+	assert(["$$", "$"].includes(closingBoundTokenText));
+
+	if (
+		textAtEquals(doc, i_doc, closingBoundTokenText) &&
+		!textAtEquals(doc, i_doc - 1, "\\")
+	) {
+		// interrupt all other active open bounds
+		stack.splice(activeMathOpeningBoundPos + 1);
+
+		pushClosingToken(stack, result, i_doc, closingBoundTokenText.length);
+		return i_doc + closingBoundTokenText.length;
 	}
 
-	if (!textAtEquals(doc, i_doc, "$$")) {
-		return undefined;
+	const mode: "math" | "text" =
+		lastNestedTextToken > lastNestedMathToken ? "text" : "math";
+	if (mode === "math") {
+		return parseSubContextTokenInMath(
+			doc,
+			i_doc,
+			stack,
+			result,
+			activeMathOpeningBoundPos
+		);
+	} else {
+		return parseOpeningContextTokenInNestedText(doc, i_doc, stack, result);
+	}
+}
+
+function parseSubContextTokenInMath(
+	doc: MinimalText,
+	i_doc: number,
+	stack: ContextToken[],
+	result: ContextToken[],
+	i_stackActiveBound: number
+): number | undefined {
+	const text = "\\text{";
+	if (textAtEquals(doc, i_doc, text)) {
+		pushOpeningToken(stack, result, i_doc, text.length);
+		return i_doc + text.length;
 	}
 
-	pushClosingToken(stack, result, i_doc, "$$".length);
-	return i_doc + "$$".length;
+	if (
+		stack.length - i_stackActiveBound > 1 &&
+		textAtEquals(doc, i_doc, "}") &&
+		!textAtEquals(doc, i_doc - 1, "\\}")
+	) {
+		pushClosingToken(stack, result, i_doc, 1);
+		return i_doc + 1;
+	}
 }
 
 function parseContextTokenInCode(
@@ -286,6 +360,8 @@ function parseContextTokenInCode(
 	result: ContextToken[],
 	boundType: "inline" | "display"
 ): number | undefined {
+	assert(["```", "`"].includes(stack[0]?.text(doc) ?? ""));
+
 	// ignore escape sequences
 	if (textAtEquals(doc, i_doc, "\\")) {
 		return i_doc + 2;
