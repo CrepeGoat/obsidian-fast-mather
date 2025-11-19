@@ -206,15 +206,6 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 			}
 			if (bound_text === "\n") {
 				if (
-					last_bound_text === "$" &&
-					last_bound_type === BoundType.Opening
-				) {
-					// a `$` terminated with a newline is not a bound
-					stack.pop();
-					result.pop();
-				}
-
-				if (
 					last_bound_text === "`" &&
 					last_bound_type === BoundType.Opening
 				) {
