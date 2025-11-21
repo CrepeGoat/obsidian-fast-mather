@@ -1,4 +1,9 @@
 import { strict as assert } from "assert";
+import * as mathjaxCommandData from "./mathjax-supported-commands.json";
+
+const TEXT_COMMANDS_BOUNDS: ReadonlyArray<string> = mathjaxCommandData.commands
+	.filter((command) => command.text_argument === true)
+	.map((command) => "\\" + command.command + "{");
 
 export function getMajorType(
 	doc: MinimalText,
@@ -10,9 +15,14 @@ export function getMajorType(
 	];
 	for (let bound of bound_stack) {
 		const text = bound.opening.text(doc);
-		if (result[0] === MajorContextTypes.Math && text === "\\text{") {
-			result = [MajorContextTypes.Text, bound];
-			continue;
+		for (const commandBoundText of TEXT_COMMANDS_BOUNDS) {
+			if (
+				result[0] === MajorContextTypes.Math &&
+				text === commandBoundText
+			) {
+				result = [MajorContextTypes.Text, bound];
+				continue;
+			}
 		}
 		if (
 			result[0] === MajorContextTypes.Text &&
@@ -297,7 +307,9 @@ function parseContextTokenInDisplayMath(
 		lastNestedMathToken +
 		stack
 			.slice(lastNestedMathToken + 1)
-			.findIndex((token) => token.text(doc) === "\\text{");
+			.findIndex((token) =>
+				TEXT_COMMANDS_BOUNDS.includes(token.text(doc))
+			);
 	const activeMathOpeningBoundPos =
 		lastNestedMathToken === -1 ? 0 : lastNestedMathToken;
 	const closingBoundTokenText = stack[activeMathOpeningBoundPos]!.text(doc);
@@ -348,10 +360,11 @@ function parseSubContextTokenInMath(
 	result: ContextToken[],
 	i_stackActiveBound: number
 ): number | undefined {
-	const text = "\\text{";
-	if (textAtEquals(doc, i_doc, text)) {
-		pushOpeningToken(stack, result, i_doc, text.length);
-		return i_doc + text.length;
+	for (const commandBoundText of TEXT_COMMANDS_BOUNDS) {
+		if (textAtEquals(doc, i_doc, commandBoundText)) {
+			pushOpeningToken(stack, result, i_doc, commandBoundText.length);
+			return i_doc + commandBoundText.length;
+		}
 	}
 
 	if (
