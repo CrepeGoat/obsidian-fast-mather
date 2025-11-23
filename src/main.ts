@@ -23,7 +23,7 @@ import {
 	BoundTokenPair,
 } from "src/context";
 
-import * as mathjaxCommandData from "./mathjax-supported-commands.json";
+import { COMMANDS } from "./mathjax-commands";
 
 interface FastMatherSettings {
 	mySetting: string;
@@ -322,7 +322,7 @@ export default class FastMather extends Plugin {
 				for (let {
 					command: command,
 					argument_count: arg_count,
-				} of mathjaxCommandData.commands) {
+				} of COMMANDS) {
 					if (command.length === 1) {
 						// ignore single-letter commands, which are often used for variable names
 						// TODO remove once expansion selector is implemented

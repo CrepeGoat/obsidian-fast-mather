@@ -1,9 +1,9 @@
 import { strict as assert } from "assert";
-import * as mathjaxCommandData from "./mathjax-supported-commands.json";
+import { COMMANDS } from "./mathjax-commands";
 
-const TEXT_COMMANDS_BOUNDS: ReadonlyArray<string> = mathjaxCommandData.commands
-	.filter((command) => command.text_argument === true)
-	.map((command) => "\\" + command.command + "{");
+const TEXT_COMMANDS_BOUNDS: ReadonlyArray<string> = COMMANDS.filter(
+	(command) => command.text_argument === true
+).map((command) => "\\" + command.command + "{");
 
 export function getMajorType(
 	doc: MinimalText,
