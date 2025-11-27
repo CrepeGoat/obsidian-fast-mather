@@ -387,11 +387,6 @@ export default class FastMather extends Plugin {
 	): number {
 		const doc = view.state.doc;
 
-		let delete_prev = false;
-		if (doc.sliceString(cursorPos - 1, cursorPos) === " ") {
-			delete_prev = true;
-		}
-
 		let boundPos: number;
 		if (cursorPos === bound?.closing?.from) {
 			boundPos = bound.closing.to;
