@@ -151,7 +151,8 @@ export default class FastMather extends Plugin {
 			main_selection,
 		])[0]!;
 		const [context_type, bound] = getMajorType(view.state.doc, bounds);
-		console.log("context type: ", MajorContextTypes[context_type]);
+		console.log("context type:", MajorContextTypes[context_type]);
+		console.log("bounds:", bounds);
 
 		if (shiftKey) {
 			return false;
@@ -348,7 +349,11 @@ export default class FastMather extends Plugin {
 				}
 
 				if (doc.sliceString(cursorPos - 1, cursorPos) === " ") {
-					const jumpPos = this.getJumpPos(view, bound, cursorPos);
+					const jumpPos = this.getJumpPos(
+						view,
+						bounds[bounds.length - 1],
+						cursorPos
+					);
 					view.dispatch({
 						changes: [
 							{
