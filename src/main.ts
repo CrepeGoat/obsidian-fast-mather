@@ -46,7 +46,7 @@ export default class FastMather extends Plugin {
 			(evt: MouseEvent) => {
 				// Called when the user clicks the icon.
 				new Notice("This is a notice!");
-			}
+			},
 		);
 		// Perform additional things with the ribbon
 		ribbonIconEl.addClass("my-plugin-ribbon-class");
@@ -113,13 +113,13 @@ export default class FastMather extends Plugin {
 					keydown: (evt, view) => {
 						this.onBeforeInput(evt, view);
 					},
-				})
-			)
+				}),
+			),
 		);
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(
-			window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000)
+			window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000),
 		);
 	}
 
@@ -132,7 +132,7 @@ export default class FastMather extends Plugin {
 			event.shiftKey,
 			event.ctrlKey || event.metaKey,
 			this.isComposing(view, event),
-			view
+			view,
 		);
 
 		if (success) event.preventDefault();
@@ -144,7 +144,7 @@ export default class FastMather extends Plugin {
 		shiftKey: boolean,
 		ctrlKey: boolean,
 		isIME: boolean,
-		view: EditorView
+		view: EditorView,
 	) {
 		const main_selection = view.state.selection.main;
 		const bounds = getContextBoundsAtSelection(view.state.doc, [
@@ -166,7 +166,7 @@ export default class FastMather extends Plugin {
 
 				const chars = doc.sliceString(
 					Math.max(cursorPos - 3, 0),
-					cursorPos
+					cursorPos,
 				);
 
 				// TODO disallow expansions for text followed by non-whitespace
@@ -178,7 +178,7 @@ export default class FastMather extends Plugin {
 						cursorPos,
 						"mm",
 						"$$\n\n$$\n",
-						"$$\n".length
+						"$$\n".length,
 					)
 				) {
 					return true;
@@ -188,7 +188,7 @@ export default class FastMather extends Plugin {
 						cursorPos,
 						"ma",
 						"$$\n\\begin{align}\n\n\\end{align}\n$$\n",
-						"$$\n\\begin{align}\n".length
+						"$$\n\\begin{align}\n".length,
 					)
 				) {
 					return true;
@@ -234,7 +234,7 @@ export default class FastMather extends Plugin {
 						cursorPos,
 						"lr",
 						"\\left\\right",
-						"\\left".length
+						"\\left".length,
 					)
 				) {
 					return true;
@@ -245,7 +245,7 @@ export default class FastMather extends Plugin {
 						cursorPos,
 						"mat",
 						"\\left[\\begin{matrix}  \\end{matrix}\\right]",
-						"\\left[\\begin{matrix} ".length
+						"\\left[\\begin{matrix} ".length,
 					)
 				) {
 					return true;
@@ -256,7 +256,7 @@ export default class FastMather extends Plugin {
 						cursorPos,
 						"pwise",
 						"\\left\\{\\begin{array}{ll}\\end{array}\\right.",
-						"\\left\\{\\begin{array}{ll}".length
+						"\\left\\{\\begin{array}{ll}".length,
 					)
 				) {
 					return true;
@@ -267,7 +267,7 @@ export default class FastMather extends Plugin {
 						cursorPos,
 						"array",
 						"\\begin{array}{l}\\end{array}",
-						"\\begin{array}{l}".length
+						"\\begin{array}{l}".length,
 					)
 				) {
 					return true;
@@ -278,7 +278,7 @@ export default class FastMather extends Plugin {
 						cursorPos,
 						"align",
 						"\\begin{align}\n\n\\end{align}",
-						"\\begin{align}\n".length
+						"\\begin{align}\n".length,
 					)
 				) {
 					return true;
@@ -290,7 +290,7 @@ export default class FastMather extends Plugin {
 						"sub",
 						"_{}",
 						"_{".length,
-						true
+						true,
 					)
 				) {
 					return true;
@@ -302,7 +302,7 @@ export default class FastMather extends Plugin {
 						"tothe",
 						"^{}",
 						"^{".length,
-						true
+						true,
 					)
 				) {
 					return true;
@@ -314,7 +314,7 @@ export default class FastMather extends Plugin {
 							cursorPos,
 							char + char,
 							char.toUpperCase() + " ",
-							2
+							2,
 						)
 					) {
 						return true;
@@ -341,7 +341,7 @@ export default class FastMather extends Plugin {
 								command +
 								"{}".repeat(arg_count) +
 								(arg_count === 0 ? " " : ""),
-							("\\" + command + 1).length
+							("\\" + command + 1).length,
 						)
 					) {
 						return true;
@@ -352,7 +352,7 @@ export default class FastMather extends Plugin {
 					const jumpPos = this.getJumpPos(
 						view,
 						bounds[bounds.length - 1],
-						cursorPos
+						cursorPos,
 					);
 					view.dispatch({
 						changes: [
@@ -383,7 +383,7 @@ export default class FastMather extends Plugin {
 	getJumpPos(
 		view: EditorView,
 		bound: BoundTokenPair | undefined,
-		cursorPos: number
+		cursorPos: number,
 	): number {
 		const doc = view.state.doc;
 
@@ -409,7 +409,7 @@ export default class FastMather extends Plugin {
 		textCode: string,
 		expandedText: string,
 		newCursorPos: number,
-		trim_leading_space: boolean = false
+		trim_leading_space: boolean = false,
 	) {
 		const doc = view.state.doc;
 		if (
@@ -417,7 +417,7 @@ export default class FastMather extends Plugin {
 				doc
 					.sliceString(
 						cursorPos - 1 - textCode.length,
-						cursorPos - textCode.length
+						cursorPos - textCode.length,
 					)
 					.match(/[^a-z\\]/i)) ||
 				cursorPos === textCode.length) &&
@@ -429,7 +429,7 @@ export default class FastMather extends Plugin {
 					doc
 						.sliceString(
 							cursorPos - textCode.length - space_count - 1,
-							cursorPos - textCode.length - space_count
+							cursorPos - textCode.length - space_count,
 						)
 						.match("[ \t]")
 				) {
@@ -442,7 +442,7 @@ export default class FastMather extends Plugin {
 				cursorPos - textCode.length - space_count,
 				cursorPos,
 				expandedText,
-				newCursorPos
+				newCursorPos,
 			);
 			return true;
 		}
@@ -455,7 +455,7 @@ export default class FastMather extends Plugin {
 		start: number,
 		end: number,
 		replacement: string,
-		newPos: number | undefined
+		newPos: number | undefined,
 	) {
 		newPos = newPos ?? replacement.length;
 		view.dispatch({
@@ -483,7 +483,7 @@ export default class FastMather extends Plugin {
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			await this.loadData()
+			await this.loadData(),
 		);
 	}
 
@@ -531,7 +531,7 @@ class SampleSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.mySetting = value;
 						await this.plugin.saveSettings();
-					})
+					}),
 			);
 	}
 }
