@@ -23,7 +23,7 @@ import {
 	BoundTokenPair,
 } from "src/context";
 
-import * as mathjaxCommandData from "./mathjax-supported-commands.json";
+import { COMMANDS } from "./mathjax-commands";
 
 interface FastMatherSettings {
 	mySetting: string;
@@ -151,7 +151,8 @@ export default class FastMather extends Plugin {
 			main_selection,
 		])[0]!;
 		const [context_type, bound] = getMajorType(view.state.doc, bounds);
-		console.log("context type: ", MajorContextTypes[context_type]);
+		console.log("context type:", MajorContextTypes[context_type]);
+		console.log("bounds:", bounds);
 
 		if (shiftKey) {
 			return false;
@@ -322,7 +323,7 @@ export default class FastMather extends Plugin {
 				for (let {
 					command: command,
 					argument_count: arg_count,
-				} of mathjaxCommandData.commands) {
+				} of COMMANDS) {
 					if (command.length === 1) {
 						// ignore single-letter commands, which are often used for variable names
 						// TODO remove once expansion selector is implemented
@@ -348,7 +349,11 @@ export default class FastMather extends Plugin {
 				}
 
 				if (doc.sliceString(cursorPos - 1, cursorPos) === " ") {
-					const jumpPos = this.getJumpPos(view, bound, cursorPos);
+					const jumpPos = this.getJumpPos(
+						view,
+						bounds[bounds.length - 1],
+						cursorPos
+					);
 					view.dispatch({
 						changes: [
 							{
@@ -381,11 +386,6 @@ export default class FastMather extends Plugin {
 		cursorPos: number
 	): number {
 		const doc = view.state.doc;
-
-		let delete_prev = false;
-		if (doc.sliceString(cursorPos - 1, cursorPos) === " ") {
-			delete_prev = true;
-		}
 
 		let boundPos: number;
 		if (cursorPos === bound?.closing?.from) {

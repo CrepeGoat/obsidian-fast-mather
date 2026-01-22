@@ -1,9 +1,12 @@
 import { strict as assert } from "assert";
-import * as mathjaxCommandData from "./mathjax-supported-commands.json";
+import { COMMANDS } from "./mathjax-commands";
 
-const TEXT_COMMANDS_BOUNDS: ReadonlyArray<string> = mathjaxCommandData.commands
-	.filter((command) => command.text_argument === true)
-	.map((command) => "\\" + command.command + "{");
+const COMMANDS_BOUNDS: ReadonlyArray<string> = COMMANDS.filter(
+	(command) => command.argument_count ?? 0 > 0
+).map((command) => "\\" + command.command + "{");
+const TEXT_COMMANDS_BOUNDS: ReadonlyArray<string> = COMMANDS.filter(
+	(command) => command.text_argument === true
+).map((command) => "\\" + command.command + "{");
 
 export function getMajorType(
 	doc: MinimalText,
@@ -360,15 +363,25 @@ function parseSubContextTokenInMath(
 	result: ContextToken[],
 	i_stackActiveBound: number
 ): number | undefined {
-	for (const commandBoundText of TEXT_COMMANDS_BOUNDS) {
+	for (const commandBoundText of COMMANDS_BOUNDS) {
 		if (textAtEquals(doc, i_doc, commandBoundText)) {
 			pushOpeningToken(stack, result, i_doc, commandBoundText.length);
 			return i_doc + commandBoundText.length;
 		}
 	}
+	if (textAtEquals(doc, i_doc, "{") && !textAtEquals(doc, i_doc - 1, "\\{")) {
+		pushOpeningToken(stack, result, i_doc, 1);
+		return i_doc + 1;
+	}
 
+	if (stack.length - i_stackActiveBound <= 1) {
+		return undefined;
+	}
+
+	const prevBoundText = stack[stack.length - 1]?.text(doc);
 	if (
-		stack.length - i_stackActiveBound > 1 &&
+		((prevBoundText?.at(0) === "\\" && prevBoundText.at(-1) === "{") ||
+			prevBoundText === "{") &&
 		textAtEquals(doc, i_doc, "}") &&
 		!textAtEquals(doc, i_doc - 1, "\\}")
 	) {
