@@ -232,6 +232,19 @@ export default class FastMather extends Plugin {
 					this.expandText(
 						view,
 						cursorPos,
+						",",
+						", ",
+						", ".length,
+						true,
+					)
+				) {
+					return true;
+				}
+
+				if (
+					this.expandText(
+						view,
+						cursorPos,
 						"lr",
 						"\\left\\right",
 						"\\left".length,
