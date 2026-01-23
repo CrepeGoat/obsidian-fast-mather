@@ -307,6 +307,18 @@ export default class FastMather extends Plugin {
 				) {
 					return true;
 				}
+				if (
+					this.expandText(
+						view,
+						cursorPos,
+						"sq",
+						"^{2} ",
+						"^{2} ".length,
+						true,
+					)
+				) {
+					return true;
+				}
 				for (let char of "abcdefghijklmnopqrstuvwxyz") {
 					if (
 						this.expandText(
