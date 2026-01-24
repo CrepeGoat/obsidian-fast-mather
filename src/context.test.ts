@@ -309,6 +309,47 @@ describe("getContextBoundsAtSelection", () => {
 		]);
 	});
 
+	test("identifies text inside an inline math block ($)", () => {
+		const doc = new MockText("$a := \\text{text and stuff}$");
+
+		const ranges: readonly MinimalSelectionRange[] = [
+			{
+				from: "$a :=".length,
+				to: "$a :=".length,
+			},
+			{
+				from: "$a := \\text{text".length,
+				to: "$a := \\text{text".length,
+			},
+			{
+				from: "$a := \\text{text and stuff}".length,
+				to: "$a := \\text{text and stuff}".length,
+			},
+		];
+
+		const bound_ranges = [
+			new BoundTokenPair(
+				new PartialBoundToken("".length, "$".length),
+				new PartialBoundToken(
+					"$a := \\text{text and stuff}".length,
+					"$a := \\text{text and stuff}$".length,
+				),
+			),
+			new BoundTokenPair(
+				new PartialBoundToken("$a := ".length, "$a := \\text{".length),
+				new PartialBoundToken(
+					"$a := \\text{text and stuff".length,
+					"$a := \\text{text and stuff}".length,
+				),
+			),
+		];
+		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
+			bound_ranges.slice(0, 1),
+			bound_ranges.slice(0, 2),
+			bound_ranges.slice(0, 1),
+		]);
+	});
+
 	test("identifies text inside a display math block ($$)", () => {
 		const doc = new MockText("$$\na := \\text{text and stuff}\n$$");
 
