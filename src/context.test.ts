@@ -47,12 +47,12 @@ describe("getContextBoundsAtSelection", () => {
 				new BoundTokenPair(
 					new PartialBoundToken(
 						"simple math ".length,
-						"simple math $".length
+						"simple math $".length,
 					),
 					new PartialBoundToken(
 						"simple math $1 + 1 = 2".length,
-						"simple math $1 + 1 = 2$".length
-					)
+						"simple math $1 + 1 = 2$".length,
+					),
 				),
 			],
 			[],
@@ -61,7 +61,7 @@ describe("getContextBoundsAtSelection", () => {
 
 	test("handles a display math block ($$)", () => {
 		const doc = new MockText(
-			"display math:\n$$\n1 + 1 = 2\n$$\nnicely formatted"
+			"display math:\n$$\n1 + 1 = 2\n$$\nnicely formatted",
 		);
 		const ranges: readonly MinimalSelectionRange[] = [
 			{
@@ -75,12 +75,12 @@ describe("getContextBoundsAtSelection", () => {
 				new BoundTokenPair(
 					new PartialBoundToken(
 						"display math:\n".length,
-						"display math:\n$$".length
+						"display math:\n$$".length,
 					),
 					new PartialBoundToken(
 						"display math:\n$$\n1 + 1 = 2\n".length,
-						"display math:\n$$\n1 + 1 = 2\n$$".length
-					)
+						"display math:\n$$\n1 + 1 = 2\n$$".length,
+					),
 				),
 			],
 		]);
@@ -88,7 +88,7 @@ describe("getContextBoundsAtSelection", () => {
 
 	test("handles multiple inline math blocks ($)", () => {
 		const doc = new MockText(
-			"math 1 $1 + 1 = 2$ followed by math 2 $1 - 1 = 0$"
+			"math 1 $1 + 1 = 2$ followed by math 2 $1 - 1 = 0$",
 		);
 		const ranges: readonly MinimalSelectionRange[] = [
 			{
@@ -107,20 +107,22 @@ describe("getContextBoundsAtSelection", () => {
 					new PartialBoundToken("math 1 ".length, "math 1 $".length),
 					new PartialBoundToken(
 						"math 1 $1 + 1 = 2".length,
-						"math 1 $1 + 1 = 2$".length
-					)
+						"math 1 $1 + 1 = 2$".length,
+					),
 				),
 			],
 			[
 				new BoundTokenPair(
 					new PartialBoundToken(
 						"math 1 $1 + 1 = 2$ followed by math 2 ".length,
-						"math 1 $1 + 1 = 2$ followed by math 2 $".length
+						"math 1 $1 + 1 = 2$ followed by math 2 $".length,
 					),
 					new PartialBoundToken(
-						"math 1 $1 + 1 = 2$ followed by math 2 $1 - 1 = 0".length,
-						"math 1 $1 + 1 = 2$ followed by math 2 $1 - 1 = 0$".length
-					)
+						"math 1 $1 + 1 = 2$ followed by math 2 $1 - 1 = 0"
+							.length,
+						"math 1 $1 + 1 = 2$ followed by math 2 $1 - 1 = 0$"
+							.length,
+					),
 				),
 			],
 		]);
@@ -128,7 +130,7 @@ describe("getContextBoundsAtSelection", () => {
 
 	test("handles multiple display math blocks ($$)", () => {
 		const doc = new MockText(
-			"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n$$1 - 1 = 0$$"
+			"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n$$1 - 1 = 0$$",
 		);
 		const ranges: readonly MinimalSelectionRange[] = [
 			{
@@ -148,24 +150,27 @@ describe("getContextBoundsAtSelection", () => {
 				new BoundTokenPair(
 					new PartialBoundToken(
 						"math 1:\n".length,
-						"math 1:\n$$".length
+						"math 1:\n$$".length,
 					),
 					new PartialBoundToken(
 						"math 1:\n$$1 + 1 = 2".length,
-						"math 1:\n$$1 + 1 = 2$$".length
-					)
+						"math 1:\n$$1 + 1 = 2$$".length,
+					),
 				),
 			],
 			[
 				new BoundTokenPair(
 					new PartialBoundToken(
 						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n".length,
-						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n$$".length
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n$$"
+							.length,
 					),
 					new PartialBoundToken(
-						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n$$1 - 1 = 0".length,
-						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n$$1 - 1 = 0$$".length
-					)
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n$$1 - 1 = 0"
+							.length,
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2:\n$$1 - 1 = 0$$"
+							.length,
+					),
 				),
 			],
 		]);
@@ -173,7 +178,7 @@ describe("getContextBoundsAtSelection", () => {
 
 	test("handles mixed inline and display math blocks", () => {
 		const doc = new MockText(
-			"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $1 - 1 = 0$"
+			"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $1 - 1 = 0$",
 		);
 		const ranges: readonly MinimalSelectionRange[] = [
 			{
@@ -192,24 +197,26 @@ describe("getContextBoundsAtSelection", () => {
 				new BoundTokenPair(
 					new PartialBoundToken(
 						"math 1:\n".length,
-						"math 1:\n$$".length
+						"math 1:\n$$".length,
 					),
 					new PartialBoundToken(
 						"math 1:\n$$1 + 1 = 2".length,
-						"math 1:\n$$1 + 1 = 2$$".length
-					)
+						"math 1:\n$$1 + 1 = 2$$".length,
+					),
 				),
 			],
 			[
 				new BoundTokenPair(
 					new PartialBoundToken(
 						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 ".length,
-						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $".length
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $".length,
 					),
 					new PartialBoundToken(
-						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $1 - 1 = 0".length,
-						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $1 - 1 = 0$".length
-					)
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $1 - 1 = 0"
+							.length,
+						"math 1:\n$$1 + 1 = 2$$\nfollowed by math 2 $1 - 1 = 0$"
+							.length,
+					),
 				),
 			],
 		]);
@@ -232,8 +239,8 @@ describe("getContextBoundsAtSelection", () => {
 			new PartialBoundToken("text and ".length, "text and $".length),
 			new PartialBoundToken(
 				"text and $ a + b \n = c".length,
-				"text and $ a + b \n = c$".length
-			)
+				"text and $ a + b \n = c$".length,
+			),
 		);
 		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
 			[bound_range],
@@ -243,7 +250,7 @@ describe("getContextBoundsAtSelection", () => {
 
 	test("ignores escaped bound (\\$) before inline math block ($)", () => {
 		const doc = new MockText(
-			"little bit of \\$ munny and $some math$ afterwards"
+			"little bit of \\$ munny and $some math$ afterwards",
 		);
 		const ranges: readonly MinimalSelectionRange[] = [
 			{
@@ -262,12 +269,12 @@ describe("getContextBoundsAtSelection", () => {
 				new BoundTokenPair(
 					new PartialBoundToken(
 						"little bit of \\$ munny and ".length,
-						"little bit of \\$ munny and $".length
+						"little bit of \\$ munny and $".length,
 					),
 					new PartialBoundToken(
 						"little bit of \\$ munny and $some math".length,
-						"little bit of \\$ munny and $some math$".length
-					)
+						"little bit of \\$ munny and $some math$".length,
+					),
 				),
 			],
 		]);
@@ -289,12 +296,12 @@ describe("getContextBoundsAtSelection", () => {
 		const bound_range = new BoundTokenPair(
 			new PartialBoundToken(
 				"little bit of ".length,
-				"little bit of $".length
+				"little bit of $".length,
 			),
 			new PartialBoundToken(
 				"little bit of $math with \\$ munny".length,
-				"little bit of $math with \\$ munny$".length
-			)
+				"little bit of $math with \\$ munny$".length,
+			),
 		);
 		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
 			[bound_range],
@@ -325,18 +332,18 @@ describe("getContextBoundsAtSelection", () => {
 				new PartialBoundToken("".length, "$$".length),
 				new PartialBoundToken(
 					"$$\na := \\text{text and stuff}\n".length,
-					"$$\na := \\text{text and stuff}\n$$".length
-				)
+					"$$\na := \\text{text and stuff}\n$$".length,
+				),
 			),
 			new BoundTokenPair(
 				new PartialBoundToken(
 					"$$\na := ".length,
-					"$$\na := \\text{".length
+					"$$\na := \\text{".length,
 				),
 				new PartialBoundToken(
 					"$$\na := \\text{text and stuff".length,
-					"$$\na := \\text{text and stuff}".length
-				)
+					"$$\na := \\text{text and stuff}".length,
+				),
 			),
 		];
 		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
@@ -348,7 +355,7 @@ describe("getContextBoundsAtSelection", () => {
 
 	test("allows simple nested equations and text inside a display math block ($$)", () => {
 		const doc = new MockText(
-			"$$\na := \\text{text and $b = e$ and stuff}\n$$"
+			"$$\na := \\text{text and $b = e$ and stuff}\n$$",
 		);
 
 		const ranges: readonly MinimalSelectionRange[] = [
@@ -379,28 +386,28 @@ describe("getContextBoundsAtSelection", () => {
 				new PartialBoundToken("".length, "$$".length),
 				new PartialBoundToken(
 					"$$\na := \\text{text and $b = e$ and stuff}\n".length,
-					"$$\na := \\text{text and $b = e$ and stuff}\n$$".length
-				)
+					"$$\na := \\text{text and $b = e$ and stuff}\n$$".length,
+				),
 			),
 			new BoundTokenPair(
 				new PartialBoundToken(
 					"$$\na := ".length,
-					"$$\na := \\text{".length
+					"$$\na := \\text{".length,
 				),
 				new PartialBoundToken(
 					"$$\na := \\text{text and $b = e$ and stuff".length,
-					"$$\na := \\text{text and $b = e$ and stuff}".length
-				)
+					"$$\na := \\text{text and $b = e$ and stuff}".length,
+				),
 			),
 			new BoundTokenPair(
 				new PartialBoundToken(
 					"$$\na := \\text{text and ".length,
-					"$$\na := \\text{text and $".length
+					"$$\na := \\text{text and $".length,
 				),
 				new PartialBoundToken(
 					"$$\na := \\text{text and $b = e".length,
-					"$$\na := \\text{text and $b = e$".length
-				)
+					"$$\na := \\text{text and $b = e$".length,
+				),
 			),
 		];
 		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
@@ -414,7 +421,7 @@ describe("getContextBoundsAtSelection", () => {
 
 	test("allows nested equations and text inside a display math block ($$)", () => {
 		const doc = new MockText(
-			"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$ and stuff}\n$$"
+			"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$ and stuff}\n$$",
 		);
 
 		const ranges: readonly MinimalSelectionRange[] = [
@@ -470,49 +477,61 @@ describe("getContextBoundsAtSelection", () => {
 			new BoundTokenPair(
 				new PartialBoundToken("".length, "$$".length),
 				new PartialBoundToken(
-					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$ and stuff}\n".length,
-					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$ and stuff}\n$$".length
-				)
+					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$ and stuff}\n"
+						.length,
+					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$ and stuff}\n$$"
+						.length,
+				),
 			),
 			new BoundTokenPair(
 				new PartialBoundToken(
 					"$$\na := ".length,
-					"$$\na := \\text{".length
+					"$$\na := \\text{".length,
 				),
 				new PartialBoundToken(
-					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$ and stuff".length,
-					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$ and stuff}".length
-				)
+					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$ and stuff"
+						.length,
+					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$ and stuff}"
+						.length,
+				),
 			),
 			new BoundTokenPair(
 				new PartialBoundToken(
 					"$$\na := \\text{text and ".length,
-					"$$\na := \\text{text and $".length
+					"$$\na := \\text{text and $".length,
 				),
 				new PartialBoundToken(
-					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e".length,
-					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$".length
-				)
+					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e"
+						.length,
+					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever} + e$"
+						.length,
+				),
 			),
 			new BoundTokenPair(
 				new PartialBoundToken(
 					"$$\na := \\text{text and $b = ".length,
-					"$$\na := \\text{text and $b = \\text{".length
+					"$$\na := \\text{text and $b = \\text{".length,
 				),
 				new PartialBoundToken(
-					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever".length,
-					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever}".length
-				)
+					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever"
+						.length,
+					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$ and whatever}"
+						.length,
+				),
 			),
 			new BoundTokenPair(
 				new PartialBoundToken(
-					"$$\na := \\text{text and $b = \\text{more stuff and ".length,
-					"$$\na := \\text{text and $b = \\text{more stuff and $".length
+					"$$\na := \\text{text and $b = \\text{more stuff and "
+						.length,
+					"$$\na := \\text{text and $b = \\text{more stuff and $"
+						.length,
 				),
 				new PartialBoundToken(
-					"$$\na := \\text{text and $b = \\text{more stuff and $c + d".length,
-					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$".length
-				)
+					"$$\na := \\text{text and $b = \\text{more stuff and $c + d"
+						.length,
+					"$$\na := \\text{text and $b = \\text{more stuff and $c + d$"
+						.length,
+				),
 			),
 		];
 		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
@@ -552,8 +571,8 @@ describe("getContextBoundsAtSelection", () => {
 					new PartialBoundToken("code ".length, "code `".length),
 					new PartialBoundToken(
 						"code `abc".length,
-						"code `abc`".length
-					)
+						"code `abc`".length,
+					),
 				),
 			],
 			[],
@@ -562,7 +581,7 @@ describe("getContextBoundsAtSelection", () => {
 
 	test("returns one bound when inside a display code block (```)", () => {
 		const doc = new MockText(
-			"display code:\n```\nabc\n```\nnicely formatted"
+			"display code:\n```\nabc\n```\nnicely formatted",
 		);
 		const ranges: readonly MinimalSelectionRange[] = [
 			{
@@ -576,12 +595,12 @@ describe("getContextBoundsAtSelection", () => {
 				new BoundTokenPair(
 					new PartialBoundToken(
 						"display code:\n".length,
-						"display code:\n```".length
+						"display code:\n```".length,
 					),
 					new PartialBoundToken(
 						"display code:\n```\nabc\n".length,
-						"display code:\n```\nabc\n```".length
-					)
+						"display code:\n```\nabc\n```".length,
+					),
 				),
 			],
 		]);
@@ -599,7 +618,7 @@ class MockText implements MinimalText {
 	sliceString(
 		from: number,
 		to?: number | undefined,
-		lineSep?: string | undefined
+		lineSep?: string | undefined,
 	): string {
 		assert(lineSep === undefined);
 		return this.text.slice(from, to);
