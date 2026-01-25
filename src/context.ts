@@ -247,12 +247,11 @@ function parseContextTokenInText(
 	return undefined;
 }
 
-function parseOpeningContextTokenInNestedText(
+function parseContextTokenInNestedText(
 	doc: MinimalText,
 	i_doc: number,
 	stack: ContextToken[],
 	result: ContextToken[],
-	i_stackActiveBound: number,
 ): number | undefined {
 	// ignore escape sequences
 	if (textAtEquals(doc, i_doc, "\\")) {
@@ -330,13 +329,7 @@ function parseContextTokenInDisplayMath(
 			activeMathOpeningBoundPos,
 		);
 	} else {
-		out = parseOpeningContextTokenInNestedText(
-			doc,
-			i_doc,
-			stack,
-			result,
-			activeMathOpeningBoundPos,
-		);
+		out = parseContextTokenInNestedText(doc, i_doc, stack, result);
 	}
 	if (out !== undefined) {
 		return out;
