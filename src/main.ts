@@ -170,7 +170,10 @@ export default class FastMather extends Plugin {
 				);
 
 				// TODO disallow expansions for text followed by non-whitespace
-				if (this.expandText(view, cursorPos, "m", "$$", 1)) {
+				if (
+					!/\S/.test(doc.sliceString(cursorPos - 2, cursorPos - 1)) && // ignore text ending in "m"
+					this.expandText(view, cursorPos, "m", "$$", 1)
+				) {
 					return true;
 				} else if (
 					this.expandText(
