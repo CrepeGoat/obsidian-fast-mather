@@ -588,6 +588,157 @@ describe("getContextBoundsAtSelection", () => {
 		]);
 	});
 
+	test("identifies sub-contexts inside an inline math block ($)", () => {
+		const doc = new MockText(
+			"$\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i$",
+		);
+
+		const ranges: readonly MinimalSelectionRange[] = [
+			{
+				from: "$\\bar X :=".length,
+				to: "$\\bar X :=".length,
+			},
+			{
+				from: "$\\bar X := \\frac{1}{".length,
+				to: "$\\bar X := \\frac{1}{n".length,
+			},
+			{
+				from: "$\\bar X := \\frac{1}{n} \\sum_{".length,
+				to: "$\\bar X := \\frac{1}{n} \\sum_{i = 1".length,
+			},
+		];
+
+		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
+			[
+				new BoundTokenPair(
+					new PartialBoundToken("".length, "$".length),
+					new PartialBoundToken(
+						"$\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i".length,
+						"$\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i$"
+							.length,
+					),
+				),
+			],
+			[
+				new BoundTokenPair(
+					new PartialBoundToken("".length, "$".length),
+					new PartialBoundToken(
+						"$\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i".length,
+						"$\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i$"
+							.length,
+					),
+				),
+				new BoundTokenPair(
+					new PartialBoundToken(
+						"$\\bar X := \\frac{1}".length,
+						"$\\bar X := \\frac{1}{".length,
+					),
+					new PartialBoundToken(
+						"$\\bar X := \\frac{1}{n".length,
+						"$\\bar X := \\frac{1}{n}".length,
+					),
+				),
+			],
+			[
+				new BoundTokenPair(
+					new PartialBoundToken("".length, "$".length),
+					new PartialBoundToken(
+						"$\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i".length,
+						"$\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i$"
+							.length,
+					),
+				),
+				new BoundTokenPair(
+					new PartialBoundToken(
+						"$\\bar X := \\frac{1}{n} \\sum_".length,
+						"$\\bar X := \\frac{1}{n} \\sum_{".length,
+					),
+					new PartialBoundToken(
+						"$\\bar X := \\frac{1}{n} \\sum_{i = 1".length,
+						"$\\bar X := \\frac{1}{n} \\sum_{i = 1}".length,
+					),
+				),
+			],
+		]);
+	});
+
+	test("identifies sub-contexts inside a display math block ($$)", () => {
+		const doc = new MockText(
+			"$$\n\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i\n$$",
+		);
+
+		const ranges: readonly MinimalSelectionRange[] = [
+			{
+				from: "$$\n\\bar X :=".length,
+				to: "$$\n\\bar X :=".length,
+			},
+			{
+				from: "$$\n\\bar X := \\frac{1}{".length,
+				to: "$$\n\\bar X := \\frac{1}{n".length,
+			},
+			{
+				from: "$$\n\\bar X := \\frac{1}{n} \\sum_{".length,
+				to: "$$\n\\bar X := \\frac{1}{n} \\sum_{i = 1".length,
+			},
+		];
+
+		expect(getContextBoundsAtSelection(doc, ranges)).toStrictEqual([
+			[
+				new BoundTokenPair(
+					new PartialBoundToken("".length, "$$".length),
+					new PartialBoundToken(
+						"$$\n\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i\n"
+							.length,
+						"$$\n\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i\n$$"
+							.length,
+					),
+				),
+			],
+			[
+				new BoundTokenPair(
+					new PartialBoundToken("".length, "$$".length),
+					new PartialBoundToken(
+						"$$\n\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i\n"
+							.length,
+						"$$\n\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i\n$$"
+							.length,
+					),
+				),
+				new BoundTokenPair(
+					new PartialBoundToken(
+						"$$\n\\bar X := \\frac{1}".length,
+						"$$\n\\bar X := \\frac{1}{".length,
+					),
+					new PartialBoundToken(
+						"$$\n\\bar X := \\frac{1}{n".length,
+						"$$\n\\bar X := \\frac{1}{n}".length,
+					),
+				),
+			],
+			[
+				new BoundTokenPair(
+					new PartialBoundToken("".length, "$$".length),
+					new PartialBoundToken(
+						"$$\n\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i\n"
+							.length,
+						"$$\n\\bar X := \\frac{1}{n} \\sum_{i = 1}^{n} X_i\n$$"
+							.length,
+					),
+				),
+				new BoundTokenPair(
+					new PartialBoundToken(
+						"$$\n\\bar X := \\frac{1}{n} \\sum_".length,
+						"$$\n\\bar X := \\frac{1}{n} \\sum_{".length,
+					),
+					new PartialBoundToken(
+						"$$\n\\bar X := \\frac{1}{n} \\sum_{i = 1".length,
+						"$$\n\\bar X := \\frac{1}{n} \\sum_{i = 1}".length,
+					),
+				),
+			],
+		]);
+	});
+
 	test("handles an inline code block (`)", () => {
 		const doc = new MockText("code `abc`, nicely formatted\n");
 		const ranges: readonly MinimalSelectionRange[] = [
