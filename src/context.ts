@@ -2,15 +2,15 @@ import { strict as assert } from "assert";
 import { COMMANDS } from "./mathjax-commands";
 
 const COMMANDS_BOUNDS: ReadonlyArray<string> = COMMANDS.filter(
-	(command) => command.argument_count ?? 0 > 0
+	(command) => command.argument_count ?? 0 > 0,
 ).map((command) => "\\" + command.command + "{");
 const TEXT_COMMANDS_BOUNDS: ReadonlyArray<string> = COMMANDS.filter(
-	(command) => command.text_argument === true
+	(command) => command.text_argument === true,
 ).map((command) => "\\" + command.command + "{");
 
 export function getMajorType(
 	doc: MinimalText,
-	bound_stack: readonly BoundTokenPair[]
+	bound_stack: readonly BoundTokenPair[],
 ): [MajorContextTypes, BoundTokenPair | undefined] {
 	let result: [MajorContextTypes, BoundTokenPair | undefined] = [
 		MajorContextTypes.Text,
@@ -48,7 +48,7 @@ export function getMajorType(
 
 export function getContextBoundsAtSelection(
 	doc: MinimalText,
-	ranges: readonly MinimalSelectionRange[]
+	ranges: readonly MinimalSelectionRange[],
 ): BoundTokenPair[][] {
 	const bounds = parseContextTokens(doc);
 	const positions = ranges.flatMap((range) => [range.from, range.to]);
@@ -58,7 +58,7 @@ export function getContextBoundsAtSelection(
 	let range_bound_stacks = [];
 	for (let i = 1; i < pos_bound_stacks.length; i = i + 2) {
 		range_bound_stacks.push(
-			longestCommonPrefix(pos_bound_stacks[i - 1]!, pos_bound_stacks[i]!)
+			longestCommonPrefix(pos_bound_stacks[i - 1]!, pos_bound_stacks[i]!),
 		);
 	}
 
@@ -76,11 +76,11 @@ function longestCommonPrefix<T>(a1: readonly T[], a2: readonly T[]): T[] {
 
 function getBoundsAbout(
 	bounds: readonly ContextToken[],
-	pos_bound_indices: readonly number[]
+	pos_bound_indices: readonly number[],
 ): BoundTokenPair[][] {
 	assertIsSorted(pos_bound_indices);
 	let result: (BoundTokenPair[] | undefined)[] = Array.from(
-		Array(pos_bound_indices.length)
+		Array(pos_bound_indices.length),
 	);
 	let stack: BoundTokenPair[] = [];
 
@@ -106,12 +106,12 @@ function getBoundsAbout(
 			assert(stack[stack.length - 1]!.isIncomplete());
 			stack[stack.length - 1]!.closing = new PartialBoundToken(
 				bound.from,
-				bound.to
+				bound.to,
 			);
 			stack.pop();
 		} else {
 			stack.push(
-				new BoundTokenPair(new PartialBoundToken(bound.from, bound.to))
+				new BoundTokenPair(new PartialBoundToken(bound.from, bound.to)),
 			);
 		}
 	}
@@ -122,7 +122,7 @@ function getBoundsAbout(
 
 function bisectPositionsToBounds(
 	bounds: readonly ContextToken[],
-	positions: readonly number[]
+	positions: readonly number[],
 ): number[] {
 	if (positions.length === 0) {
 		return [];
@@ -134,19 +134,19 @@ function bisectPositionsToBounds(
 	return [
 		...bisectPositionsToBounds(
 			bounds.slice(0, i_map_to_bounds + 1), // include middle bound
-			positions.slice(0, i_pos_mid) // exclude middle position
+			positions.slice(0, i_pos_mid), // exclude middle position
 		),
 		i_map_to_bounds,
 		...bisectPositionsToBounds(
 			bounds.slice(i_map_to_bounds), // include middle bound
-			positions.slice(i_pos_mid + 1) // exclude middle position
+			positions.slice(i_pos_mid + 1), // exclude middle position
 		).map((pos: number) => pos + i_map_to_bounds),
 	];
 }
 
 function bisectBounds(
 	bounds: readonly ContextToken[],
-	position: number
+	position: number,
 ): number {
 	if (bounds.length === 0) {
 		return 0;
@@ -214,7 +214,7 @@ function parseContextTokens(doc: MinimalText): ContextToken[] {
 					i_doc,
 					stack,
 					result,
-					firstContextTokenText === "`" ? "inline" : "display"
+					firstContextTokenText === "`" ? "inline" : "display",
 				) ?? i_doc + 1;
 			continue;
 		}
@@ -227,7 +227,7 @@ function parseContextTokenInText(
 	doc: MinimalText,
 	i_doc: number,
 	stack: ContextToken[],
-	result: ContextToken[]
+	result: ContextToken[],
 ): number | undefined {
 	// ignore escape sequences
 	if (textAtEquals(doc, i_doc, "\\")) {
@@ -247,12 +247,11 @@ function parseContextTokenInText(
 	return undefined;
 }
 
-function parseOpeningContextTokenInNestedText(
+function parseContextTokenInNestedText(
 	doc: MinimalText,
 	i_doc: number,
 	stack: ContextToken[],
 	result: ContextToken[],
-	i_stackActiveBound: number
 ): number | undefined {
 	// ignore escape sequences
 	if (textAtEquals(doc, i_doc, "\\")) {
@@ -277,33 +276,56 @@ function parseContextTokenInInlineMath(
 	doc: MinimalText,
 	i_doc: number,
 	stack: ContextToken[],
-	result: ContextToken[]
+	result: ContextToken[],
 ): number | undefined {
 	assert(stack[0]?.text(doc) === "$");
 
-	// ignore escape sequences
-	if (textAtEquals(doc, i_doc, "\\")) {
-		return i_doc + 2;
+	let mode: "math" | "text" = "math";
+	for (let token of stack.slice(1)) {
+		if (TEXT_COMMANDS_BOUNDS.includes(token.text(doc))) {
+			mode = "text";
+			break;
+		}
 	}
 
-	if (!textAtEquals(doc, i_doc, "$")) {
-		return undefined;
+	if (mode === "math") {
+		for (let textCommand of TEXT_COMMANDS_BOUNDS) {
+			if (textAtEquals(doc, i_doc, textCommand)) {
+				pushOpeningToken(stack, result, i_doc, textCommand.length);
+				return i_doc + textCommand.length;
+			}
+		}
+		// ignore escape sequences
+		if (textAtEquals(doc, i_doc, "\\")) {
+			return i_doc + 2;
+		}
+		if (textAtEquals(doc, i_doc, "$")) {
+			pushClosingToken(stack, result, i_doc, "$".length);
+			return i_doc + "$".length;
+		}
+	} else {
+		// ignore escape sequences
+		if (textAtEquals(doc, i_doc, "\\")) {
+			return i_doc + 2;
+		}
+		if (textAtEquals(doc, i_doc, "}")) {
+			pushClosingToken(stack, result, i_doc, "$".length);
+			return i_doc + "$".length;
+		}
 	}
-
-	pushClosingToken(stack, result, i_doc, "$".length);
-	return i_doc + "$".length;
+	return undefined;
 }
 
 function parseContextTokenInDisplayMath(
 	doc: MinimalText,
 	i_doc: number,
 	stack: ContextToken[],
-	result: ContextToken[]
+	result: ContextToken[],
 ): number | undefined {
 	assert(stack[0]?.text(doc) === "$$");
 
 	const lastNestedMathToken = stack.findLastIndex(
-		(token) => token.text(doc) === "$"
+		(token) => token.text(doc) === "$",
 	);
 	const lastNestedTextToken =
 		1 +
@@ -311,7 +333,7 @@ function parseContextTokenInDisplayMath(
 		stack
 			.slice(lastNestedMathToken + 1)
 			.findIndex((token) =>
-				TEXT_COMMANDS_BOUNDS.includes(token.text(doc))
+				TEXT_COMMANDS_BOUNDS.includes(token.text(doc)),
 			);
 	const activeMathOpeningBoundPos =
 		lastNestedMathToken === -1 ? 0 : lastNestedMathToken;
@@ -327,16 +349,10 @@ function parseContextTokenInDisplayMath(
 			i_doc,
 			stack,
 			result,
-			activeMathOpeningBoundPos
+			activeMathOpeningBoundPos,
 		);
 	} else {
-		out = parseOpeningContextTokenInNestedText(
-			doc,
-			i_doc,
-			stack,
-			result,
-			activeMathOpeningBoundPos
-		);
+		out = parseContextTokenInNestedText(doc, i_doc, stack, result);
 	}
 	if (out !== undefined) {
 		return out;
@@ -361,7 +377,7 @@ function parseSubContextTokenInMath(
 	i_doc: number,
 	stack: ContextToken[],
 	result: ContextToken[],
-	i_stackActiveBound: number
+	i_stackActiveBound: number,
 ): number | undefined {
 	for (const commandBoundText of COMMANDS_BOUNDS) {
 		if (textAtEquals(doc, i_doc, commandBoundText)) {
@@ -395,7 +411,7 @@ function parseContextTokenInCode(
 	i_doc: number,
 	stack: ContextToken[],
 	result: ContextToken[],
-	boundType: "inline" | "display"
+	boundType: "inline" | "display",
 ): number | undefined {
 	assert(["```", "`"].includes(stack[0]?.text(doc) ?? ""));
 
@@ -433,12 +449,12 @@ function pushOpeningToken(
 	stack: ContextToken[],
 	result: ContextToken[],
 	i_doc: number,
-	length: number
+	length: number,
 ) {
 	const contextToken = new ContextToken(
 		i_doc,
 		i_doc + length,
-		BoundType.Opening
+		BoundType.Opening,
 	);
 	stack.push(contextToken);
 	result.push(contextToken);
@@ -448,7 +464,7 @@ function pushClosingToken(
 	stack: ContextToken[],
 	result: ContextToken[],
 	i_doc: number,
-	length: number
+	length: number,
 ) {
 	stack.pop();
 	result.push(new ContextToken(i_doc, i_doc + length, BoundType.Closing));
@@ -460,7 +476,7 @@ export class BoundTokenPair {
 
 	constructor(
 		opening: PartialBoundToken,
-		closing?: PartialBoundToken | undefined
+		closing?: PartialBoundToken | undefined,
 	) {
 		this.opening = opening;
 		this.closing = closing;
@@ -509,7 +525,7 @@ export interface MinimalText {
 	sliceString(
 		from: number,
 		to?: number | undefined,
-		lineSep?: string | undefined
+		lineSep?: string | undefined,
 	): string;
 }
 
