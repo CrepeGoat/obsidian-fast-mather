@@ -280,17 +280,40 @@ function parseContextTokenInInlineMath(
 ): number | undefined {
 	assert(stack[0]?.text(doc) === "$");
 
-	// ignore escape sequences
-	if (textAtEquals(doc, i_doc, "\\")) {
-		return i_doc + 2;
+	let mode: "math" | "text" = "math";
+	for (let token of stack.slice(1)) {
+		if (TEXT_COMMANDS_BOUNDS.includes(token.text(doc))) {
+			mode = "text";
+			break;
+		}
 	}
 
-	if (!textAtEquals(doc, i_doc, "$")) {
-		return undefined;
+	if (mode === "math") {
+		for (let textCommand of TEXT_COMMANDS_BOUNDS) {
+			if (textAtEquals(doc, i_doc, textCommand)) {
+				pushOpeningToken(stack, result, i_doc, textCommand.length);
+				return i_doc + textCommand.length;
+			}
+		}
+		// ignore escape sequences
+		if (textAtEquals(doc, i_doc, "\\")) {
+			return i_doc + 2;
+		}
+		if (textAtEquals(doc, i_doc, "$")) {
+			pushClosingToken(stack, result, i_doc, "$".length);
+			return i_doc + "$".length;
+		}
+	} else {
+		// ignore escape sequences
+		if (textAtEquals(doc, i_doc, "\\")) {
+			return i_doc + 2;
+		}
+		if (textAtEquals(doc, i_doc, "}")) {
+			pushClosingToken(stack, result, i_doc, "$".length);
+			return i_doc + "$".length;
+		}
 	}
-
-	pushClosingToken(stack, result, i_doc, "$".length);
-	return i_doc + "$".length;
+	return undefined;
 }
 
 function parseContextTokenInDisplayMath(
