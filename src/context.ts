@@ -4,6 +4,10 @@ import { COMMANDS } from "./mathjax-commands";
 const COMMANDS_BOUNDS: ReadonlyArray<string> = COMMANDS.filter(
 	(command) => command.argument_count ?? 0 > 0,
 ).map((command) => "\\" + command.command + "{");
+const NON_TEXT_COMMAND_BOUNDS: ReadonlyArray<string> = COMMANDS.filter(
+	(command) =>
+		(command.argument_count ?? 0 > 0) && command.text_argument !== true,
+).map((command) => "\\" + command.command + "{");
 const TEXT_COMMANDS_BOUNDS: ReadonlyArray<string> = COMMANDS.filter(
 	(command) => command.text_argument === true,
 ).map((command) => "\\" + command.command + "{");
@@ -289,19 +293,9 @@ function parseContextTokenInInlineMath(
 	}
 
 	if (mode === "math") {
-		for (let textCommand of TEXT_COMMANDS_BOUNDS) {
-			if (textAtEquals(doc, i_doc, textCommand)) {
-				pushOpeningToken(stack, result, i_doc, textCommand.length);
-				return i_doc + textCommand.length;
-			}
-		}
-		// ignore escape sequences
-		if (textAtEquals(doc, i_doc, "\\")) {
-			return i_doc + 2;
-		}
-		if (textAtEquals(doc, i_doc, "$")) {
-			pushClosingToken(stack, result, i_doc, "$".length);
-			return i_doc + "$".length;
+		const out = parseSubContextTokenInMath(doc, i_doc, stack, result, 1);
+		if (out !== undefined) {
+			return out;
 		}
 	} else {
 		// ignore escape sequences
@@ -312,6 +306,15 @@ function parseContextTokenInInlineMath(
 			pushClosingToken(stack, result, i_doc, "$".length);
 			return i_doc + "$".length;
 		}
+	}
+
+	// ignore escape sequences
+	if (textAtEquals(doc, i_doc, "\\")) {
+		return i_doc + 2;
+	}
+	if (textAtEquals(doc, i_doc, "$")) {
+		pushClosingToken(stack, result, i_doc, "$".length);
+		return i_doc + "$".length;
 	}
 	return undefined;
 }
