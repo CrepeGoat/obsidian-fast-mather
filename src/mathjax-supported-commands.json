@@ -70,7 +70,7 @@
         {"command": "backsimeq", "argument_count": null, "text_argument": null},
         {"command": "backslash", "argument_count": null, "text_argument": null},
         {"command": "badbreak", "argument_count": null, "text_argument": null},
-        {"command": "bar", "argument_count": null, "text_argument": null},
+        {"command": "bar", "argument_count": null, "text_argument": 1},
         {"command": "barwedge", "argument_count": null, "text_argument": null},
         {"command": "bbalpha", "argument_count": null, "text_argument": null},
         {"command": "Bbb", "argument_count": null, "text_argument": null},
