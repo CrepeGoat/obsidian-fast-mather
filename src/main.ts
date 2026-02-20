@@ -123,7 +123,7 @@ export default class FastMather extends Plugin {
 		);
 	}
 
-	onunload() {}
+	onunload() { }
 
 	// from https://github.com/artisticat1/obsidian-latex-suite/blob/ce31511a47949e3d4d0b3a43444949fd5a6a69f6/src/latex_suite.ts#L31
 	onBeforeInput(event: KeyboardEvent, view: EditorView) {
@@ -228,17 +228,19 @@ export default class FastMather extends Plugin {
 				const cursorPos = view.state.selection.main.to;
 				const doc = view.state.doc;
 
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						",",
-						", ",
-						", ".length,
-						true,
-					)
-				) {
-					return true;
+				for (let c of [",", "(", ")", "[", "]"]) {
+					if (
+						this.expandText(
+							view,
+							cursorPos,
+							c,
+							c + " ",
+							(c + " ").length,
+							true,
+						)
+					) {
+						return true;
+					}
 				}
 
 				if (
@@ -363,9 +365,9 @@ export default class FastMather extends Plugin {
 							cursorPos,
 							command,
 							"\\" +
-								command +
-								"{}".repeat(arg_count) +
-								(arg_count === 0 ? " " : ""),
+							command +
+							"{}".repeat(arg_count) +
+							(arg_count === 0 ? " " : ""),
 							("\\" + command + 1).length,
 						)
 					) {
