@@ -1376,6 +1376,7 @@
         {"command": "v", "argument_count": null, "text_argument": null},
         {"command": "va", "argument_count": null, "text_argument": null},
         {"command": "varDelta", "argument_count": null, "text_argument": null},
+        {"command": "varepsilon", "argument_count": null, "text_argument": null},
         {"command": "varGamma", "argument_count": null, "text_argument": null},
         {"command": "variation", "argument_count": null, "text_argument": null},
         {"command": "varkappa", "argument_count": null, "text_argument": null},
