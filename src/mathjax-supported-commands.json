@@ -255,7 +255,7 @@
         {"command": "centerOver", "argument_count": null, "text_argument": null},
         {"command": "cfrac", "argument_count": null, "text_argument": null},
         {"command": "char", "argument_count": null, "text_argument": null},
-        {"command": "check", "argument_count": null, "text_argument": null},
+        {"command": "check", "argument_count": 1, "text_argument": null},
         {"command": "checkmark", "argument_count": null, "text_argument": null},
         {"command": "chi", "argument_count": null, "text_argument": null},
         {"command": "choose", "argument_count": null, "text_argument": null},
