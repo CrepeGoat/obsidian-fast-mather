@@ -252,16 +252,19 @@ function parseContextTokenInNestedText(
 	i_doc: number,
 	stack: ContextToken[],
 	result: ContextToken[],
+	nestedMathAllowed: boolean = true,
 ): number | undefined {
 	// ignore escape sequences
 	if (textAtEquals(doc, i_doc, "\\")) {
 		return i_doc + 2;
 	}
 
-	const startBoundTokenText = "$";
-	if (textAtEquals(doc, i_doc, startBoundTokenText)) {
-		pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
-		return i_doc + startBoundTokenText.length;
+	if (nestedMathAllowed) {
+		const startBoundTokenText = "$";
+		if (textAtEquals(doc, i_doc, startBoundTokenText)) {
+			pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
+			return i_doc + startBoundTokenText.length;
+		}
 	}
 
 	const endBoundTokenText = "}";
@@ -279,6 +282,7 @@ function parseContextTokenInInlineMath(
 	result: ContextToken[],
 ): number | undefined {
 	assert(stack[0]?.text(doc) === "$");
+	const activeMathOpeningBoundPos = 0; // no nested math -> active bound is always the first
 
 	let mode: "math" | "text" = "math";
 	for (let token of stack.slice(1)) {
@@ -288,31 +292,34 @@ function parseContextTokenInInlineMath(
 		}
 	}
 
+	let out = undefined;
 	if (mode === "math") {
-		for (let textCommand of TEXT_COMMANDS_BOUNDS) {
-			if (textAtEquals(doc, i_doc, textCommand)) {
-				pushOpeningToken(stack, result, i_doc, textCommand.length);
-				return i_doc + textCommand.length;
-			}
-		}
-		// ignore escape sequences
-		if (textAtEquals(doc, i_doc, "\\")) {
-			return i_doc + 2;
-		}
-		if (textAtEquals(doc, i_doc, "$")) {
-			pushClosingToken(stack, result, i_doc, "$".length);
-			return i_doc + "$".length;
-		}
+		out = parseContextTokenInNestedMath(
+			doc,
+			i_doc,
+			stack,
+			result,
+			activeMathOpeningBoundPos,
+		);
 	} else {
-		// ignore escape sequences
-		if (textAtEquals(doc, i_doc, "\\")) {
-			return i_doc + 2;
-		}
-		if (textAtEquals(doc, i_doc, "}")) {
-			pushClosingToken(stack, result, i_doc, "$".length);
-			return i_doc + "$".length;
-		}
+		out = parseContextTokenInNestedText(doc, i_doc, stack, result, false);
 	}
+	if (out !== undefined) {
+		return out;
+	}
+
+	const closingBoundTokenText = "$";
+	if (
+		textAtEquals(doc, i_doc, closingBoundTokenText) &&
+		!textAtEquals(doc, i_doc - 1, "\\")
+	) {
+		// interrupt all other active open bounds
+		stack.splice(activeMathOpeningBoundPos + 1);
+
+		pushClosingToken(stack, result, i_doc, closingBoundTokenText.length);
+		return i_doc + closingBoundTokenText.length;
+	}
+
 	return undefined;
 }
 
@@ -344,7 +351,7 @@ function parseContextTokenInDisplayMath(
 	const mode: "math" | "text" =
 		lastNestedTextToken > lastNestedMathToken ? "text" : "math";
 	if (mode === "math") {
-		out = parseSubContextTokenInMath(
+		out = parseContextTokenInNestedMath(
 			doc,
 			i_doc,
 			stack,
@@ -372,7 +379,7 @@ function parseContextTokenInDisplayMath(
 	return undefined;
 }
 
-function parseSubContextTokenInMath(
+function parseContextTokenInNestedMath(
 	doc: MinimalText,
 	i_doc: number,
 	stack: ContextToken[],
@@ -390,7 +397,7 @@ function parseSubContextTokenInMath(
 		return i_doc + 1;
 	}
 
-	if (stack.length - i_stackActiveBound <= 1) {
+	if (i_stackActiveBound >= stack.length - 1) {
 		return undefined;
 	}
 
@@ -404,6 +411,8 @@ function parseSubContextTokenInMath(
 		pushClosingToken(stack, result, i_doc, 1);
 		return i_doc + 1;
 	}
+
+	return undefined;
 }
 
 function parseContextTokenInCode(
