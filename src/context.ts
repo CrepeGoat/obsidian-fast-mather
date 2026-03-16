@@ -252,16 +252,19 @@ function parseContextTokenInNestedText(
 	i_doc: number,
 	stack: ContextToken[],
 	result: ContextToken[],
+	nestedMathAllowed: boolean = true,
 ): number | undefined {
 	// ignore escape sequences
 	if (textAtEquals(doc, i_doc, "\\")) {
 		return i_doc + 2;
 	}
 
-	const startBoundTokenText = "$";
-	if (textAtEquals(doc, i_doc, startBoundTokenText)) {
-		pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
-		return i_doc + startBoundTokenText.length;
+	if (nestedMathAllowed) {
+		const startBoundTokenText = "$";
+		if (textAtEquals(doc, i_doc, startBoundTokenText)) {
+			pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
+			return i_doc + startBoundTokenText.length;
+		}
 	}
 
 	const endBoundTokenText = "}";
@@ -304,14 +307,7 @@ function parseContextTokenInInlineMath(
 			return i_doc + "$".length;
 		}
 	} else {
-		// ignore escape sequences
-		if (textAtEquals(doc, i_doc, "\\")) {
-			return i_doc + 2;
-		}
-		if (textAtEquals(doc, i_doc, "}")) {
-			pushClosingToken(stack, result, i_doc, "$".length);
-			return i_doc + "$".length;
-		}
+		return parseContextTokenInNestedText(doc, i_doc, stack, result, false);
 	}
 	return undefined;
 }
