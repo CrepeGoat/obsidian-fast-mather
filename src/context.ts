@@ -397,7 +397,7 @@ function parseContextTokenInNestedMath(
 		return i_doc + 1;
 	}
 
-	if (stack.length - i_stackActiveBound <= 1) {
+	if (i_stackActiveBound >= stack.length - 1) {
 		return undefined;
 	}
 
