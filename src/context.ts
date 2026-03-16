@@ -48,10 +48,9 @@ export function getMajorType(
 }
 
 export function getContextBoundsAtSelection(
-	doc: MinimalText,
+	bounds: ContextToken[],
 	ranges: readonly MinimalSelectionRange[],
 ): BoundTokenPair[][] {
-	const bounds = parseContextTokens(doc);
 	const positions = ranges.flatMap((range) => [range.from, range.to]);
 	const pos_bound_indices = bisectPositionsToBounds(bounds, positions);
 	const pos_bound_stacks = getBoundsAbout(bounds, pos_bound_indices);
