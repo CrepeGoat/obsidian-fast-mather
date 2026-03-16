@@ -282,6 +282,7 @@ function parseContextTokenInInlineMath(
 	result: ContextToken[],
 ): number | undefined {
 	assert(stack[0]?.text(doc) === "$");
+	const activeMathOpeningBoundPos = 0; // no nested math -> active bound is always the first
 
 	let mode: "math" | "text" = "math";
 	for (let token of stack.slice(1)) {
@@ -291,24 +292,34 @@ function parseContextTokenInInlineMath(
 		}
 	}
 
+	let out = undefined;
 	if (mode === "math") {
-		for (let textCommand of TEXT_COMMANDS_BOUNDS) {
-			if (textAtEquals(doc, i_doc, textCommand)) {
-				pushOpeningToken(stack, result, i_doc, textCommand.length);
-				return i_doc + textCommand.length;
-			}
-		}
-		// ignore escape sequences
-		if (textAtEquals(doc, i_doc, "\\")) {
-			return i_doc + 2;
-		}
-		if (textAtEquals(doc, i_doc, "$")) {
-			pushClosingToken(stack, result, i_doc, "$".length);
-			return i_doc + "$".length;
-		}
+		out = parseContextTokenInNestedMath(
+			doc,
+			i_doc,
+			stack,
+			result,
+			activeMathOpeningBoundPos,
+		);
 	} else {
-		return parseContextTokenInNestedText(doc, i_doc, stack, result, false);
+		out = parseContextTokenInNestedText(doc, i_doc, stack, result, false);
 	}
+	if (out !== undefined) {
+		return out;
+	}
+
+	const closingBoundTokenText = "$";
+	if (
+		textAtEquals(doc, i_doc, closingBoundTokenText) &&
+		!textAtEquals(doc, i_doc - 1, "\\")
+	) {
+		// interrupt all other active open bounds
+		stack.splice(activeMathOpeningBoundPos + 1);
+
+		pushClosingToken(stack, result, i_doc, closingBoundTokenText.length);
+		return i_doc + closingBoundTokenText.length;
+	}
+
 	return undefined;
 }
 
@@ -340,7 +351,7 @@ function parseContextTokenInDisplayMath(
 	const mode: "math" | "text" =
 		lastNestedTextToken > lastNestedMathToken ? "text" : "math";
 	if (mode === "math") {
-		out = parseSubContextTokenInMath(
+		out = parseContextTokenInNestedMath(
 			doc,
 			i_doc,
 			stack,
@@ -368,7 +379,7 @@ function parseContextTokenInDisplayMath(
 	return undefined;
 }
 
-function parseSubContextTokenInMath(
+function parseContextTokenInNestedMath(
 	doc: MinimalText,
 	i_doc: number,
 	stack: ContextToken[],
