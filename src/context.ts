@@ -411,6 +411,8 @@ function parseContextTokenInNestedMath(
 		pushClosingToken(stack, result, i_doc, 1);
 		return i_doc + 1;
 	}
+
+	return undefined;
 }
 
 function parseContextTokenInCode(
