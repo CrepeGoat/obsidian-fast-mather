@@ -55,14 +55,9 @@ function parseContextTokenInText(
     stack: ContextToken[],
     result: ContextToken[],
 ): number | undefined {
-    // ignore escape sequences
-    if (textAtEquals(doc, i_doc, "\\")) {
-        return i_doc + 2;
-    }
-
     let startBoundTokenTexts = ["$$", "```", "$", "`"];
     for (let startBoundTokenText of startBoundTokenTexts) {
-        if (textAtEquals(doc, i_doc, startBoundTokenText)) {
+        if (textAtEquals(doc, i_doc, startBoundTokenText, true)) {
             pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
             return i_doc + startBoundTokenText.length;
         }
@@ -78,21 +73,16 @@ function parseContextTokenInNestedText(
     result: ContextToken[],
     nestedMathAllowed: boolean = true,
 ): number | undefined {
-    // ignore escape sequences
-    if (textAtEquals(doc, i_doc, "\\")) {
-        return i_doc + 2;
-    }
-
     if (nestedMathAllowed) {
         const startBoundTokenText = "$";
-        if (textAtEquals(doc, i_doc, startBoundTokenText)) {
+        if (textAtEquals(doc, i_doc, startBoundTokenText, true)) {
             pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
             return i_doc + startBoundTokenText.length;
         }
     }
 
     const endBoundTokenText = "}";
-    if (textAtEquals(doc, i_doc, endBoundTokenText)) {
+    if (textAtEquals(doc, i_doc, endBoundTokenText, true)) {
         pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
         return i_doc + endBoundTokenText.length;
     }
@@ -134,7 +124,7 @@ function parseContextTokenInInlineMath(
 
     const closingBoundTokenText = "$";
     if (
-        textAtEquals(doc, i_doc, closingBoundTokenText)
+        textAtEquals(doc, i_doc, closingBoundTokenText, true)
     ) {
         // interrupt all other active open bounds
         stack.splice(activeMathOpeningBoundPos + 1);
@@ -189,7 +179,7 @@ function parseContextTokenInDisplayMath(
     }
 
     if (
-        textAtEquals(doc, i_doc, closingBoundTokenText)
+        textAtEquals(doc, i_doc, closingBoundTokenText, true)
     ) {
         // interrupt all other active open bounds
         stack.splice(activeMathOpeningBoundPos + 1);
@@ -215,12 +205,7 @@ function parseContextTokenInNestedMath(
         }
     }
 
-    // ignore escape sequences
-    if (textAtEquals(doc, i_doc, "\\")) {
-        return i_doc + 2;
-    }
-
-    if (textAtEquals(doc, i_doc, "{")) {
+    if (textAtEquals(doc, i_doc, "{", true)) {
         pushOpeningToken(stack, result, i_doc, 1);
         return i_doc + 1;
     }
@@ -233,7 +218,7 @@ function parseContextTokenInNestedMath(
     if (
         ((prevBoundText?.at(0) === "\\" && prevBoundText.at(-1) === "{") ||
             prevBoundText === "{") &&
-        textAtEquals(doc, i_doc, "}")
+        textAtEquals(doc, i_doc, "}", true)
     ) {
         pushClosingToken(stack, result, i_doc, 1);
         return i_doc + 1;
@@ -251,11 +236,6 @@ function parseContextTokenInCode(
 ): number | undefined {
     assert(["```", "`"].includes(stack[0]?.text(doc) ?? ""));
 
-    // ignore escape sequences
-    if (textAtEquals(doc, i_doc, "\\")) {
-        return i_doc + 2;
-    }
-
     let endBoundTokenTexts = [];
     if (boundType === "inline") {
         // newlines terminate inline code blocks
@@ -266,7 +246,7 @@ function parseContextTokenInCode(
     }
 
     for (const endBoundTokenText of endBoundTokenTexts) {
-        if (textAtEquals(doc, i_doc, endBoundTokenText)) {
+        if (textAtEquals(doc, i_doc, endBoundTokenText, true)) {
             pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
             return i_doc + endBoundTokenText.length;
         }
@@ -275,8 +255,9 @@ function parseContextTokenInCode(
     return undefined;
 }
 
-function textAtEquals(doc: MinimalText, i_doc: number, text: string) {
-    return doc.sliceString(i_doc, i_doc + text.length) === text;
+function textAtEquals(doc: MinimalText, i_doc: number, text: string, unescaped = false) {
+    return doc.sliceString(i_doc, i_doc + text.length) === text
+        && (!unescaped || (doc.sliceString(i_doc - 1, i_doc) !== "\\"));
 }
 
 function pushOpeningToken(
