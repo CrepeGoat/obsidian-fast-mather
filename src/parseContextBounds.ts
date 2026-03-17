@@ -136,8 +136,7 @@ function parseContextTokenInInlineMath(
 
     const closingBoundTokenText = "$";
     if (
-        textAtEquals(doc, i_doc, closingBoundTokenText) &&
-        !textAtEquals(doc, i_doc - 1, "\\")
+        textAtEquals(doc, i_doc, closingBoundTokenText)
     ) {
         // interrupt all other active open bounds
         stack.splice(activeMathOpeningBoundPos + 1);
@@ -192,8 +191,7 @@ function parseContextTokenInDisplayMath(
     }
 
     if (
-        textAtEquals(doc, i_doc, closingBoundTokenText) &&
-        !textAtEquals(doc, i_doc - 1, "\\")
+        textAtEquals(doc, i_doc, closingBoundTokenText)
     ) {
         // interrupt all other active open bounds
         stack.splice(activeMathOpeningBoundPos + 1);
@@ -218,7 +216,13 @@ function parseContextTokenInNestedMath(
             return i_doc + commandBoundText.length;
         }
     }
-    if (textAtEquals(doc, i_doc, "{") && !textAtEquals(doc, i_doc - 1, "\\{")) {
+
+    // ignore escape sequences
+    if (textAtEquals(doc, i_doc, "\\")) {
+        return i_doc + 2;
+    }
+
+    if (textAtEquals(doc, i_doc, "{")) {
         pushOpeningToken(stack, result, i_doc, 1);
         return i_doc + 1;
     }
@@ -231,8 +235,7 @@ function parseContextTokenInNestedMath(
     if (
         ((prevBoundText?.at(0) === "\\" && prevBoundText.at(-1) === "{") ||
             prevBoundText === "{") &&
-        textAtEquals(doc, i_doc, "}") &&
-        !textAtEquals(doc, i_doc - 1, "\\}")
+        textAtEquals(doc, i_doc, "}")
     ) {
         pushClosingToken(stack, result, i_doc, 1);
         return i_doc + 1;
