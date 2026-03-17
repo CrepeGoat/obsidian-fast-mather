@@ -56,7 +56,7 @@ function parseContextTokenInText(
     result: ContextToken[],
 ): number | undefined {
     // ignore escape sequences
-    if (textAtEquals(doc, i_doc, "\\")) {
+    if (textAtEquals(doc, i_doc, "\\") || textAtEquals(doc, i_doc, "$ ")) {
         return i_doc + 2;
     }
 
@@ -81,7 +81,7 @@ function parseContextTokenInNestedText(
     nestedMathAllowed: boolean = true,
 ): number | undefined {
     // ignore escape sequences
-    if (textAtEquals(doc, i_doc, "\\")) {
+    if (textAtEquals(doc, i_doc, "\\") || textAtEquals(doc, i_doc, "$ ")) {
         return i_doc + 2;
     }
 
