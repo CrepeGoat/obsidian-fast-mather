@@ -136,14 +136,50 @@ describe("getContextBoundsAtSelection", () => {
 		]);
 	});
 
+	test("ignores inline math block ($) when start bound is followed by whitespace", () => {
+		const doc = new MockText("$ text$math$text$bad");
+
+		expect(parseContextTokens(doc)).toStrictEqual([
+			new ContextToken("$ text".length, "$ text$".length, BoundType.Opening),
+			new ContextToken(
+				"$ text$math".length,
+				"$ text$math$".length,
+				BoundType.Closing,
+			),
+			new ContextToken(
+				"$ text$math$text".length,
+				"$ text$math$text$".length,
+				BoundType.Opening,
+			),
+		]);
+	});
+
+	test("ignores inline math block ($) when end bound is preceded by whitespace", () => {
+		const doc = new MockText("$text $math$text$bad");
+
+		expect(parseContextTokens(doc)).toStrictEqual([
+			new ContextToken("$text ".length, "$text $".length, BoundType.Opening),
+			new ContextToken(
+				"$text $math".length,
+				"$text $math$".length,
+				BoundType.Closing,
+			),
+			new ContextToken(
+				"$text $math$text".length,
+				"$text $math$text$".length,
+				BoundType.Opening,
+			),
+		]);
+	});
+
 	test("ignores a newline (\\n) inside an inline math block ($)", () => {
-		const doc = new MockText("text and $ a + b \n = c$\n then more text");
+		const doc = new MockText("text and $a + b \n = c$\n then more text");
 
 		expect(parseContextTokens(doc)).toStrictEqual([
 			new ContextToken("text and ".length, "text and $".length, BoundType.Opening),
 			new ContextToken(
-				"text and $ a + b \n = c".length,
-				"text and $ a + b \n = c$".length,
+				"text and $a + b \n = c".length,
+				"text and $a + b \n = c$".length,
 				BoundType.Closing,
 			),
 		]);
