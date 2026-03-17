@@ -24,6 +24,7 @@ import {
 } from "src/context";
 
 import { COMMANDS } from "./mathjax-commands";
+import { parseContextTokens } from "./parseContextBounds";
 
 interface FastMatherSettings {
 	mySetting: string;
@@ -147,7 +148,7 @@ export default class FastMather extends Plugin {
 		view: EditorView,
 	) {
 		const main_selection = view.state.selection.main;
-		const bounds = getContextBoundsAtSelection(view.state.doc, [
+		const bounds = getContextBoundsAtSelection(parseContextTokens(view.state.doc), [
 			main_selection,
 		])[0]!;
 		const [context_type, bound] = getMajorType(view.state.doc, bounds);
