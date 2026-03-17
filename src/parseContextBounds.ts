@@ -62,12 +62,10 @@ function parseContextTokenInText(
 
     let startBoundTokenTexts = ["$$", "```", "$", "`"];
     for (let startBoundTokenText of startBoundTokenTexts) {
-        if (!textAtEquals(doc, i_doc, startBoundTokenText)) {
-            continue;
+        if (textAtEquals(doc, i_doc, startBoundTokenText)) {
+            pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
+            return i_doc + startBoundTokenText.length;
         }
-
-        pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
-        return i_doc + startBoundTokenText.length;
     }
 
     return undefined;
@@ -268,12 +266,10 @@ function parseContextTokenInCode(
     }
 
     for (const endBoundTokenText of endBoundTokenTexts) {
-        if (!textAtEquals(doc, i_doc, endBoundTokenText)) {
-            continue;
+        if (textAtEquals(doc, i_doc, endBoundTokenText)) {
+            pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
+            return i_doc + endBoundTokenText.length;
         }
-
-        pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
-        return i_doc + endBoundTokenText.length;
     }
 
     return undefined;
