@@ -134,6 +134,7 @@ function parseContextTokenInInlineMath(
         return out;
     }
 
+    assert(!textAtEquals(doc, i_doc, " $")); // TODO
     const closingBoundTokenText = "$";
     if (
         textAtEquals(doc, i_doc, closingBoundTokenText) &&
