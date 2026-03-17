@@ -185,6 +185,23 @@ describe("getContextBoundsAtSelection", () => {
 		]);
 	});
 
+	test("terminates an inline math block ($) with an un-terminated text block (`\\text{`)", () => {
+		const doc = new MockText("text $math\\text{hello$} text");
+
+		expect(parseContextTokens(doc)).toStrictEqual([
+			new ContextToken(
+				"text ".length,
+				"text $".length,
+				BoundType.Opening,
+			),
+			new ContextToken(
+				"text $math\\text{hello".length,
+				"text $math\\text{hello$".length,
+				BoundType.Closing,
+			),
+		]);
+	});
+
 	test("identifies text inside an inline math block ($)", () => {
 		const doc = new MockText("$a := \\text{text and stuff}$");
 
