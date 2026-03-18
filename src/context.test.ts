@@ -17,7 +17,11 @@ describe("getContextBoundsAtSelection", () => {
 		new ContextToken(20, 25, BoundType.Opening),
 		new ContextToken(30, 35, BoundType.Opening),
 		new ContextToken(40, 45, BoundType.Closing),
-		new ContextToken(50, 55, BoundType.Closing),
+		new ContextToken(50, 55, BoundType.Opening),
+		new ContextToken(60, 65, BoundType.Opening),
+		undefined,
+		undefined,
+		new ContextToken(70, 75, BoundType.Closing),
 	];
 
 	test("handles simple selections within non-nested bounds", () => {
@@ -38,7 +42,7 @@ describe("getContextBoundsAtSelection", () => {
 			[
 				new BoundTokenPair(
 					new PartialBoundToken(20, 25),
-					new PartialBoundToken(50, 55),
+					new PartialBoundToken(70, 75),
 				),
 			],
 		]);
@@ -53,11 +57,45 @@ describe("getContextBoundsAtSelection", () => {
 			[
 				new BoundTokenPair(
 					new PartialBoundToken(20, 25),
-					new PartialBoundToken(50, 55),
+					new PartialBoundToken(70, 75),
 				),
 				new BoundTokenPair(
 					new PartialBoundToken(30, 35),
 					new PartialBoundToken(40, 45),
+				),
+			],
+		]);
+	})
+
+	test("handles selections within incomplete bounds", () => {
+		const ranges: readonly MinimalSelectionRange[] = [
+			{ from: 57, to: 57 },
+			{ from: 67, to: 67 },
+		];
+
+		expect(getContextBoundsAtSelection(bounds, ranges)).toStrictEqual([
+			[
+				new BoundTokenPair(
+					new PartialBoundToken(20, 25),
+					new PartialBoundToken(70, 75),
+				),
+				new BoundTokenPair(
+					new PartialBoundToken(50, 55),
+					undefined,
+				),
+			],
+			[
+				new BoundTokenPair(
+					new PartialBoundToken(20, 25),
+					new PartialBoundToken(70, 75),
+				),
+				new BoundTokenPair(
+					new PartialBoundToken(50, 55),
+					undefined,
+				),
+				new BoundTokenPair(
+					new PartialBoundToken(60, 65),
+					undefined,
 				),
 			],
 		]);
@@ -71,6 +109,8 @@ describe("getContextBoundsAtSelection", () => {
 			{ from: 31, to: 31 },
 			{ from: 39, to: 41 },
 			{ from: 51, to: 52 },
+			{ from: 61, to: 62 },
+			{ from: 71, to: 72 },
 		];
 
 		expect(getContextBoundsAtSelection(bounds, ranges)).toStrictEqual([
@@ -80,15 +120,30 @@ describe("getContextBoundsAtSelection", () => {
 			[
 				new BoundTokenPair(
 					new PartialBoundToken(20, 25),
-					new PartialBoundToken(50, 55),
+					new PartialBoundToken(70, 75),
 				),
 			],
 			[
 				new BoundTokenPair(
 					new PartialBoundToken(20, 25),
-					new PartialBoundToken(50, 55),
+					new PartialBoundToken(70, 75),
 				),
-
+			],
+			[
+				new BoundTokenPair(
+					new PartialBoundToken(20, 25),
+					new PartialBoundToken(70, 75),
+				),
+			],
+			[
+				new BoundTokenPair(
+					new PartialBoundToken(20, 25),
+					new PartialBoundToken(70, 75),
+				),
+				new BoundTokenPair(
+					new PartialBoundToken(50, 55),
+					undefined,
+				),
 			],
 			[],
 		]);
