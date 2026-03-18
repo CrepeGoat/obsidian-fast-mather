@@ -79,9 +79,7 @@ function getBoundsAbout(
 	pos_bound_indices: readonly number[],
 ): BoundTokenPair[][] {
 	assertIsSorted(pos_bound_indices);
-	let result: (BoundTokenPair[] | undefined)[] = Array.from(
-		Array(pos_bound_indices.length),
-	);
+	let result: (BoundTokenPair[] | undefined)[] = Array(pos_bound_indices.length);
 	let stack: BoundTokenPair[] = [];
 
 	let i_pos = 0;
