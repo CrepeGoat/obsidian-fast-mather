@@ -48,12 +48,13 @@ export function getMajorType(
 }
 
 export function getContextBoundsAtSelection(
-	bounds: ContextToken[],
+	bounds: (ContextToken | undefined)[],
 	ranges: readonly MinimalSelectionRange[],
 ): BoundTokenPair[][] {
+	const [completeBounds, incompleteBoundCounts] = splitIncompletes(bounds);
 	const positions = ranges.flatMap((range) => [range.from, range.to]);
-	const pos_bound_indices = bisectPositionsToBounds(bounds, positions);
-	const pos_bound_stacks = getBoundsAbout(bounds, pos_bound_indices);
+	const pos_bound_indices = bisectPositionsToBounds(completeBounds, positions);
+	const pos_bound_stacks = getBoundsAbout(completeBounds, incompleteBoundCounts, pos_bound_indices);
 
 	let range_bound_stacks = [];
 	for (let i = 1; i < pos_bound_stacks.length; i = i + 2) {
@@ -76,8 +77,10 @@ function longestCommonPrefix<T>(a1: readonly T[], a2: readonly T[]): T[] {
 
 function getBoundsAbout(
 	bounds: readonly ContextToken[],
+	incompleteBoundCounts: readonly number[],
 	pos_bound_indices: readonly number[],
 ): BoundTokenPair[][] {
+	assert(bounds.length === incompleteBoundCounts.length);
 	assertIsSorted(pos_bound_indices);
 	let result: (BoundTokenPair[] | undefined)[] = Array(pos_bound_indices.length);
 	let stack: BoundTokenPair[] = [];
@@ -95,6 +98,9 @@ function getBoundsAbout(
 			// the positions should run out before the bounds
 			assert(i_pos >= pos_bound_indices.length);
 			break;
+		}
+		for (let j = 0; j < incompleteBoundCounts[i_bound]!; j += 1) {
+			stack.pop();
 		}
 		const bound = bounds[i_bound]!;
 		if (bound.type === BoundType.Closing) {
@@ -178,6 +184,34 @@ function assertIsSorted(array: readonly number[]) {
 	for (let i = 1; i < array.length; i++) {
 		assert(array[i - 1]! <= array[i]!);
 	}
+}
+
+function splitIncompletes(bounds: (ContextToken | undefined)[]): [ContextToken[], number[]] {
+	let completeBounds: ContextToken[] = [];
+	let incompleteBoundCounts: number[] = [];
+
+	// want incomplete counts to be associated with the *following* valid token
+	// -> push an extra element at the start, and pop one at the end
+	incompleteBoundCounts.push(0);
+
+	for (const bound of bounds) {
+		if (bound !== undefined) {
+			completeBounds.push(bound)
+			incompleteBoundCounts.push(0)
+		} else {
+			assert(incompleteBoundCounts.length > 0);
+			incompleteBoundCounts[incompleteBoundCounts.length - 1]! += 1;
+		}
+	}
+
+	// -> pop extra count at the end
+	assert(incompleteBoundCounts.pop() === 0);
+	// 1. incomplete bounds must have an associated opening bound
+	// 2. incomplete counts are associated with the following bound
+	// -> the first count should always be zero
+	assert(incompleteBoundCounts[0] === 0);
+
+	return [completeBounds, incompleteBoundCounts]
 }
 
 export class BoundTokenPair {
