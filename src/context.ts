@@ -94,13 +94,22 @@ function getBoundsAbout(
 				break;
 			}
 		}
+
+		// - `incompleteBoundCounts` counts the number of bounds that are
+		//	terminated after the ith bound, and before the (i+1)th bound
+		// - here we need the number of bounds terminated before the ith bound
+		// -> we use `incompleteBoundCounts[i_bound - 1]`
+		// - for `i === 0`, `incompleteBoundCounts[i-1] === undefined`
+		// - there are no bounds before the 0th bound -> use 0
+		const popStackLen = (incompleteBoundCounts[i_bound - 1] ?? 0);
+		if (popStackLen > 0) {
+			stack.splice(-popStackLen);
+		}
+
 		if (i_bound >= bounds.length) {
 			// the positions should run out before the bounds
 			assert(i_pos >= pos_bound_indices.length);
 			break;
-		}
-		for (let j = 0; j < incompleteBoundCounts[i_bound]!; j += 1) {
-			stack.pop();
 		}
 		const bound = bounds[i_bound]!;
 		if (bound.type === BoundType.Closing) {
@@ -190,10 +199,6 @@ function splitIncompletes(bounds: (ContextToken | undefined)[]): [ContextToken[]
 	let completeBounds: ContextToken[] = [];
 	let incompleteBoundCounts: number[] = [];
 
-	// want incomplete counts to be associated with the *following* valid token
-	// -> push an extra element at the start, and pop one at the end
-	incompleteBoundCounts.push(0);
-
 	for (const bound of bounds) {
 		if (bound !== undefined) {
 			completeBounds.push(bound)
@@ -203,13 +208,6 @@ function splitIncompletes(bounds: (ContextToken | undefined)[]): [ContextToken[]
 			incompleteBoundCounts[incompleteBoundCounts.length - 1]! += 1;
 		}
 	}
-
-	// -> pop extra count at the end
-	assert(incompleteBoundCounts.pop() === 0);
-	// 1. incomplete bounds must have an associated opening bound
-	// 2. incomplete counts are associated with the following bound
-	// -> the first count should always be zero
-	assert(incompleteBoundCounts[0] === 0);
 
 	return [completeBounds, incompleteBoundCounts]
 }
