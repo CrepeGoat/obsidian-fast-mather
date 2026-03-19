@@ -260,8 +260,15 @@ function parseContextTokenInCode(
 }
 
 function textAtEquals(doc: MinimalText, i_doc: number, text: string, unescaped = false) {
-    return doc.sliceString(i_doc, i_doc + text.length) === text
-        && (!unescaped || (doc.sliceString(i_doc - 1, i_doc) !== "\\"));
+    if (doc.sliceString(i_doc, i_doc + text.length) !== text) {
+        return false;
+    }
+
+    if (unescaped && (doc.sliceString(i_doc - 1, i_doc) === "\\")) {
+        return false;
+    }
+
+    return true;
 }
 
 function pushOpeningToken(
