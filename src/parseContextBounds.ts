@@ -57,7 +57,7 @@ function parseContextTokenInText(
 ): number | undefined {
     let startBoundTokenTexts = ["$$", "```", "$", "`"];
     for (let startBoundTokenText of startBoundTokenTexts) {
-        if (textAtEquals(doc, i_doc, startBoundTokenText, true)) {
+        if (textAtEquals(doc, i_doc, startBoundTokenText, ["\\"])) {
             pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
             return i_doc + startBoundTokenText.length;
         }
@@ -75,14 +75,14 @@ function parseContextTokenInNestedText(
 ): number | undefined {
     if (nestedMathAllowed) {
         const startBoundTokenText = "$";
-        if (textAtEquals(doc, i_doc, startBoundTokenText, true)) {
+        if (textAtEquals(doc, i_doc, startBoundTokenText, ["\\"])) {
             pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
             return i_doc + startBoundTokenText.length;
         }
     }
 
     const endBoundTokenText = "}";
-    if (textAtEquals(doc, i_doc, endBoundTokenText, true)) {
+    if (textAtEquals(doc, i_doc, endBoundTokenText, ["\\"])) {
         pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
         return i_doc + endBoundTokenText.length;
     }
@@ -124,7 +124,7 @@ function parseContextTokenInInlineMath(
 
     const closingBoundTokenText = "$";
     if (
-        textAtEquals(doc, i_doc, closingBoundTokenText, true)
+        textAtEquals(doc, i_doc, closingBoundTokenText, ["\\"])
     ) {
         // interrupt all other active open bounds
         while (activeMathOpeningBoundPos < stack.length - 1) {
@@ -183,7 +183,7 @@ function parseContextTokenInDisplayMath(
     }
 
     if (
-        textAtEquals(doc, i_doc, closingBoundTokenText, true)
+        textAtEquals(doc, i_doc, closingBoundTokenText, ["\\"])
     ) {
         // interrupt all other active open bounds
         stack.splice(activeMathOpeningBoundPos + 1);
@@ -209,7 +209,7 @@ function parseContextTokenInNestedMath(
         }
     }
 
-    if (textAtEquals(doc, i_doc, "{", true)) {
+    if (textAtEquals(doc, i_doc, "{", ["\\"])) {
         pushOpeningToken(stack, result, i_doc, 1);
         return i_doc + 1;
     }
@@ -222,7 +222,7 @@ function parseContextTokenInNestedMath(
     if (
         ((prevBoundText?.at(0) === "\\" && prevBoundText.at(-1) === "{") ||
             prevBoundText === "{") &&
-        textAtEquals(doc, i_doc, "}", true)
+        textAtEquals(doc, i_doc, "}", ["\\"])
     ) {
         pushClosingToken(stack, result, i_doc, 1);
         return i_doc + 1;
@@ -250,7 +250,7 @@ function parseContextTokenInCode(
     }
 
     for (const endBoundTokenText of endBoundTokenTexts) {
-        if (textAtEquals(doc, i_doc, endBoundTokenText, true)) {
+        if (textAtEquals(doc, i_doc, endBoundTokenText, ["\\"])) {
             pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
             return i_doc + endBoundTokenText.length;
         }
@@ -259,13 +259,15 @@ function parseContextTokenInCode(
     return undefined;
 }
 
-function textAtEquals(doc: MinimalText, i_doc: number, text: string, unescaped = false) {
+function textAtEquals(doc: MinimalText, i_doc: number, text: string, escapePrefices: readonly string[] = []) {
     if (doc.sliceString(i_doc, i_doc + text.length) !== text) {
         return false;
     }
 
-    if (unescaped && (doc.sliceString(i_doc - 1, i_doc) === "\\")) {
-        return false;
+    for (const escapePrefix of escapePrefices) {
+        if (doc.sliceString(i_doc - escapePrefix.length, i_doc) === escapePrefix) {
+            return false;
+        }
     }
 
     return true;
