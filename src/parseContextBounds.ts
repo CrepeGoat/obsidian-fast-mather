@@ -57,7 +57,10 @@ function parseContextTokenInText(
 ): number | undefined {
     let startBoundTokenTexts = ["$$", "```", "$", "`"];
     for (let startBoundTokenText of startBoundTokenTexts) {
-        if (textAtEquals(doc, i_doc, startBoundTokenText, ["\\"])) {
+        if (textAtEquals(
+            doc, i_doc, startBoundTokenText, ["\\"],
+            (startBoundTokenText === "$" ? [" "] : []),
+        )) {
             pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
             return i_doc + startBoundTokenText.length;
         }
