@@ -259,13 +259,29 @@ function parseContextTokenInCode(
     return undefined;
 }
 
-function textAtEquals(doc: MinimalText, i_doc: number, text: string, escapePrefices: readonly string[] = []) {
+function textAtEquals(
+    doc: MinimalText,
+    i_doc: number,
+    text: string,
+    escapePrefices: readonly string[] = [],
+    escapeSuffices: readonly string[] = [],
+) {
     if (doc.sliceString(i_doc, i_doc + text.length) !== text) {
         return false;
     }
 
     for (const escapePrefix of escapePrefices) {
         if (doc.sliceString(i_doc - escapePrefix.length, i_doc) === escapePrefix) {
+            return false;
+        }
+    }
+
+    for (const escapeSuffix of escapeSuffices) {
+        if (
+            doc.sliceString(
+                i_doc + text.length, i_doc + text.length + escapeSuffix.length
+            ) === escapeSuffix
+        ) {
             return false;
         }
     }
