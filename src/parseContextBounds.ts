@@ -57,7 +57,10 @@ function parseContextTokenInText(
 ): number | undefined {
     let startBoundTokenTexts = ["$$", "```", "$", "`"];
     for (let startBoundTokenText of startBoundTokenTexts) {
-        if (textAtEquals(doc, i_doc, startBoundTokenText, true)) {
+        if (textAtEquals(
+            doc, i_doc, startBoundTokenText, ["\\"],
+            (startBoundTokenText === "$" ? [" "] : []),
+        )) {
             pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
             return i_doc + startBoundTokenText.length;
         }
@@ -75,14 +78,14 @@ function parseContextTokenInNestedText(
 ): number | undefined {
     if (nestedMathAllowed) {
         const startBoundTokenText = "$";
-        if (textAtEquals(doc, i_doc, startBoundTokenText, true)) {
+        if (textAtEquals(doc, i_doc, startBoundTokenText, ["\\"])) {
             pushOpeningToken(stack, result, i_doc, startBoundTokenText.length);
             return i_doc + startBoundTokenText.length;
         }
     }
 
     const endBoundTokenText = "}";
-    if (textAtEquals(doc, i_doc, endBoundTokenText, true)) {
+    if (textAtEquals(doc, i_doc, endBoundTokenText, ["\\"])) {
         pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
         return i_doc + endBoundTokenText.length;
     }
@@ -124,17 +127,26 @@ function parseContextTokenInInlineMath(
 
     const closingBoundTokenText = "$";
     if (
-        textAtEquals(doc, i_doc, closingBoundTokenText, true)
+        textAtEquals(doc, i_doc, closingBoundTokenText, ["\\"])
     ) {
         // interrupt all other active open bounds
         while (activeMathOpeningBoundPos < stack.length - 1) {
             stack.pop();
             result.push(undefined);
         }
-        stack.splice(activeMathOpeningBoundPos + 1);
 
         pushClosingToken(stack, result, i_doc, closingBoundTokenText.length);
         return i_doc + closingBoundTokenText.length;
+    }
+    if (
+        textAtEquals(doc, i_doc, " " + closingBoundTokenText)
+    ) {
+        // an end bound proceeded by a space invalidates the start bound
+        // (this doesn't prevent the end bound from being interpreted as a new start bound)
+        const i_start = stack[activeMathOpeningBoundPos].from;
+        result.splice(result.findLastIndex((bound) => bound === stack[activeMathOpeningBoundPos]));
+        stack.splice(activeMathOpeningBoundPos);
+        return i_start + 1;
     }
 
     return undefined;
@@ -183,7 +195,7 @@ function parseContextTokenInDisplayMath(
     }
 
     if (
-        textAtEquals(doc, i_doc, closingBoundTokenText, true)
+        textAtEquals(doc, i_doc, closingBoundTokenText, ["\\"])
     ) {
         // interrupt all other active open bounds
         stack.splice(activeMathOpeningBoundPos + 1);
@@ -209,7 +221,7 @@ function parseContextTokenInNestedMath(
         }
     }
 
-    if (textAtEquals(doc, i_doc, "{", true)) {
+    if (textAtEquals(doc, i_doc, "{", ["\\"])) {
         pushOpeningToken(stack, result, i_doc, 1);
         return i_doc + 1;
     }
@@ -222,7 +234,7 @@ function parseContextTokenInNestedMath(
     if (
         ((prevBoundText?.at(0) === "\\" && prevBoundText.at(-1) === "{") ||
             prevBoundText === "{") &&
-        textAtEquals(doc, i_doc, "}", true)
+        textAtEquals(doc, i_doc, "}", ["\\"])
     ) {
         pushClosingToken(stack, result, i_doc, 1);
         return i_doc + 1;
@@ -250,7 +262,7 @@ function parseContextTokenInCode(
     }
 
     for (const endBoundTokenText of endBoundTokenTexts) {
-        if (textAtEquals(doc, i_doc, endBoundTokenText, true)) {
+        if (textAtEquals(doc, i_doc, endBoundTokenText, ["\\"])) {
             pushClosingToken(stack, result, i_doc, endBoundTokenText.length);
             return i_doc + endBoundTokenText.length;
         }
@@ -259,9 +271,34 @@ function parseContextTokenInCode(
     return undefined;
 }
 
-function textAtEquals(doc: MinimalText, i_doc: number, text: string, unescaped = false) {
-    return doc.sliceString(i_doc, i_doc + text.length) === text
-        && (!unescaped || (doc.sliceString(i_doc - 1, i_doc) !== "\\"));
+function textAtEquals(
+    doc: MinimalText,
+    i_doc: number,
+    text: string,
+    escapePrefices: readonly string[] = [],
+    escapeSuffices: readonly string[] = [],
+) {
+    if (doc.sliceString(i_doc, i_doc + text.length) !== text) {
+        return false;
+    }
+
+    for (const escapePrefix of escapePrefices) {
+        if (doc.sliceString(i_doc - escapePrefix.length, i_doc) === escapePrefix) {
+            return false;
+        }
+    }
+
+    for (const escapeSuffix of escapeSuffices) {
+        if (
+            doc.sliceString(
+                i_doc + text.length, i_doc + text.length + escapeSuffix.length
+            ) === escapeSuffix
+        ) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 function pushOpeningToken(
