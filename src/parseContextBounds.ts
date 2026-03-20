@@ -134,7 +134,6 @@ function parseContextTokenInInlineMath(
             stack.pop();
             result.push(undefined);
         }
-        stack.splice(activeMathOpeningBoundPos + 1);
 
         pushClosingToken(stack, result, i_doc, closingBoundTokenText.length);
         return i_doc + closingBoundTokenText.length;
