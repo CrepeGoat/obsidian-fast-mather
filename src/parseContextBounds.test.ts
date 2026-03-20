@@ -154,7 +154,7 @@ describe("getContextBoundsAtSelection", () => {
 		]);
 	});
 
-	test("ignores inline math block ($) when end bound is preceded by whitespace", () => {
+	test("ignores inline math block ($) start bound when end bound is preceded by whitespace", () => {
 		const doc = new MockText("$text $math$text$bad");
 
 		expect(parseContextTokens(doc)).toStrictEqual([

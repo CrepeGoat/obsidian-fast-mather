@@ -139,6 +139,16 @@ function parseContextTokenInInlineMath(
         pushClosingToken(stack, result, i_doc, closingBoundTokenText.length);
         return i_doc + closingBoundTokenText.length;
     }
+    if (
+        textAtEquals(doc, i_doc, " " + closingBoundTokenText)
+    ) {
+        // an end bound proceeded by a space invalidates the start bound
+        // (this doesn't prevent the end bound from being interpreted as a new start bound)
+        const i_start = stack[activeMathOpeningBoundPos].from;
+        result.splice(result.findLastIndex((bound) => bound === stack[activeMathOpeningBoundPos]));
+        stack.splice(activeMathOpeningBoundPos);
+        return i_start + 1;
+    }
 
     return undefined;
 }
