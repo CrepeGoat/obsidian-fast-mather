@@ -48,13 +48,12 @@ export function getMajorType(
 }
 
 export function getContextBoundsAtSelection(
-	bounds: (ContextToken | undefined)[],
+	bounds: (ContextToken)[],
 	ranges: readonly MinimalSelectionRange[],
 ): BoundTokenPair[][] {
-	const [completeBounds, incompleteBoundCounts] = splitIncompletes(bounds);
 	const positions = ranges.flatMap((range) => [range.from, range.to]);
-	const pos_bound_indices = bisectPositionsToBounds(completeBounds, positions);
-	const pos_bound_stacks = getBoundsAbout(completeBounds, incompleteBoundCounts, pos_bound_indices);
+	const pos_bound_indices = bisectPositionsToBounds(bounds, positions);
+	const pos_bound_stacks = getBoundsAbout(bounds, pos_bound_indices);
 
 	let range_bound_stacks = [];
 	for (let i = 1; i < pos_bound_stacks.length; i = i + 2) {
@@ -77,10 +76,8 @@ function longestCommonPrefix<T>(a1: readonly T[], a2: readonly T[]): T[] {
 
 function getBoundsAbout(
 	bounds: readonly ContextToken[],
-	incompleteBoundCounts: readonly number[],
 	pos_bound_indices: readonly number[],
 ): BoundTokenPair[][] {
-	assert(bounds.length === incompleteBoundCounts.length);
 	assertIsSorted(pos_bound_indices);
 	let result: (BoundTokenPair[] | undefined)[] = Array(pos_bound_indices.length);
 	let stack: BoundTokenPair[] = [];
@@ -93,17 +90,6 @@ function getBoundsAbout(
 			if (i_pos >= pos_bound_indices.length) {
 				break;
 			}
-		}
-
-		// - `incompleteBoundCounts` counts the number of bounds that are
-		//	terminated after the ith bound, and before the (i+1)th bound
-		// - here we need the number of bounds terminated before the ith bound
-		// -> we use `incompleteBoundCounts[i_bound - 1]`
-		// - for `i === 0`, `incompleteBoundCounts[i-1] === undefined`
-		// - there are no bounds before the 0th bound -> use 0
-		const popStackLen = (incompleteBoundCounts[i_bound - 1] ?? 0);
-		if (popStackLen > 0) {
-			stack.splice(-popStackLen);
 		}
 
 		if (i_bound >= bounds.length) {
@@ -193,23 +179,6 @@ function assertIsSorted(array: readonly number[]) {
 	for (let i = 1; i < array.length; i++) {
 		assert(array[i - 1]! <= array[i]!);
 	}
-}
-
-function splitIncompletes(bounds: (ContextToken | undefined)[]): [ContextToken[], number[]] {
-	let completeBounds: ContextToken[] = [];
-	let incompleteBoundCounts: number[] = [];
-
-	for (const bound of bounds) {
-		if (bound !== undefined) {
-			completeBounds.push(bound)
-			incompleteBoundCounts.push(0)
-		} else {
-			assert(incompleteBoundCounts.length > 0);
-			incompleteBoundCounts[incompleteBoundCounts.length - 1]! += 1;
-		}
-	}
-
-	return [completeBounds, incompleteBoundCounts]
 }
 
 export class BoundTokenPair {

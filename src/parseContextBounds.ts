@@ -8,9 +8,9 @@ export const TEXT_COMMANDS_BOUNDS: ReadonlyArray<string> = COMMANDS.filter(
     (command) => command.text_argument === true,
 ).map((command) => "\\" + command.command + "{");
 
-export function parseContextTokens(doc: MinimalText): (ContextToken | undefined)[] {
-    let result: (ContextToken | undefined)[] = [];
-    let stack: (ContextToken | undefined)[] = [];
+export function parseContextTokens(doc: MinimalText): (ContextToken)[] {
+    let result: (ContextToken)[] = [];
+    let stack: (ContextToken)[] = [];
 
     let i_doc = 0;
     while (i_doc < doc.length) {
@@ -52,8 +52,8 @@ export function parseContextTokens(doc: MinimalText): (ContextToken | undefined)
 function parseContextTokenInText(
     doc: MinimalText,
     i_doc: number,
-    stack: (ContextToken | undefined)[],
-    result: (ContextToken | undefined)[],
+    stack: (ContextToken)[],
+    result: (ContextToken)[],
 ): number | undefined {
     let startBoundTokenTexts = ["$$", "```", "$", "`"];
     for (let startBoundTokenText of startBoundTokenTexts) {
@@ -72,8 +72,8 @@ function parseContextTokenInText(
 function parseContextTokenInNestedText(
     doc: MinimalText,
     i_doc: number,
-    stack: (ContextToken | undefined)[],
-    result: (ContextToken | undefined)[],
+    stack: (ContextToken)[],
+    result: (ContextToken)[],
     nestedMathAllowed: boolean = true,
 ): number | undefined {
     if (nestedMathAllowed) {
@@ -95,8 +95,8 @@ function parseContextTokenInNestedText(
 function parseContextTokenInInlineMath(
     doc: MinimalText,
     i_doc: number,
-    stack: (ContextToken | undefined)[],
-    result: (ContextToken | undefined)[],
+    stack: (ContextToken)[],
+    result: (ContextToken)[],
 ): number | undefined {
     assert(stack[0]?.text(doc) === "$");
     const activeMathOpeningBoundPos = 0; // no nested math -> active bound is always the first
@@ -131,8 +131,7 @@ function parseContextTokenInInlineMath(
     ) {
         // interrupt all other active open bounds
         while (activeMathOpeningBoundPos < stack.length - 1) {
-            stack.pop();
-            result.push(undefined);
+            pushClosingToken(stack, result, i_doc, 0);
         }
 
         pushClosingToken(stack, result, i_doc, closingBoundTokenText.length);
@@ -155,8 +154,8 @@ function parseContextTokenInInlineMath(
 function parseContextTokenInDisplayMath(
     doc: MinimalText,
     i_doc: number,
-    stack: (ContextToken | undefined)[],
-    result: (ContextToken | undefined)[],
+    stack: (ContextToken)[],
+    result: (ContextToken)[],
 ): number | undefined {
     assert(stack[0]?.text(doc) === "$$");
 
@@ -210,8 +209,8 @@ function parseContextTokenInDisplayMath(
 function parseContextTokenInNestedMath(
     doc: MinimalText,
     i_doc: number,
-    stack: (ContextToken | undefined)[],
-    result: (ContextToken | undefined)[],
+    stack: (ContextToken)[],
+    result: (ContextToken)[],
     i_stackActiveBound: number,
 ): number | undefined {
     for (const commandBoundText of COMMANDS_BOUNDS) {
@@ -246,8 +245,8 @@ function parseContextTokenInNestedMath(
 function parseContextTokenInCode(
     doc: MinimalText,
     i_doc: number,
-    stack: (ContextToken | undefined)[],
-    result: (ContextToken | undefined)[],
+    stack: (ContextToken)[],
+    result: (ContextToken)[],
     boundType: "inline" | "display",
 ): number | undefined {
     assert(["```", "`"].includes(stack[0]?.text(doc) ?? ""));
@@ -302,8 +301,8 @@ function textAtEquals(
 }
 
 function pushOpeningToken(
-    stack: (ContextToken | undefined)[],
-    result: (ContextToken | undefined)[],
+    stack: (ContextToken)[],
+    result: (ContextToken)[],
     i_doc: number,
     length: number,
 ) {
@@ -317,8 +316,8 @@ function pushOpeningToken(
 }
 
 function pushClosingToken(
-    stack: (ContextToken | undefined)[],
-    result: (ContextToken | undefined)[],
+    stack: (ContextToken)[],
+    result: (ContextToken)[],
     i_doc: number,
     length: number,
 ) {

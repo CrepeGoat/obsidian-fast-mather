@@ -235,7 +235,11 @@ describe("getContextBoundsAtSelection", () => {
 				"text $math\\text{".length,
 				BoundType.Opening,
 			),
-			undefined,
+			new ContextToken(
+				"text $math\\text{hello".length,
+				"text $math\\text{hello".length,
+				BoundType.Closing,
+			),
 			new ContextToken(
 				"text $math\\text{hello".length,
 				"text $math\\text{hello$".length,
