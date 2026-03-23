@@ -19,8 +19,8 @@ describe("getContextBoundsAtSelection", () => {
 		new ContextToken(40, 45, BoundType.Closing),
 		new ContextToken(50, 55, BoundType.Opening),
 		new ContextToken(60, 65, BoundType.Opening),
-		undefined,
-		undefined,
+		new ContextToken(70, 70, BoundType.Closing),
+		new ContextToken(70, 70, BoundType.Closing),
 		new ContextToken(70, 75, BoundType.Closing),
 	];
 
@@ -81,7 +81,7 @@ describe("getContextBoundsAtSelection", () => {
 				),
 				new BoundTokenPair(
 					new PartialBoundToken(50, 55),
-					undefined,
+					new PartialBoundToken(70, 70),
 				),
 			],
 			[
@@ -91,11 +91,11 @@ describe("getContextBoundsAtSelection", () => {
 				),
 				new BoundTokenPair(
 					new PartialBoundToken(50, 55),
-					undefined,
+					new PartialBoundToken(70, 70),
 				),
 				new BoundTokenPair(
 					new PartialBoundToken(60, 65),
-					undefined,
+					new PartialBoundToken(70, 70),
 				),
 			],
 		]);
@@ -142,7 +142,7 @@ describe("getContextBoundsAtSelection", () => {
 				),
 				new BoundTokenPair(
 					new PartialBoundToken(50, 55),
-					undefined,
+					new PartialBoundToken(70, 70),
 				),
 			],
 			[],
