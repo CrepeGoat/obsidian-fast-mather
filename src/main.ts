@@ -24,6 +24,7 @@ import {
 } from "src/context";
 
 import { COMMANDS } from "./mathjax-commands";
+import { SHORTCUTS } from "./math-shortcuts";
 import { parseContextTokens } from "./parseContextBounds";
 
 interface FastMatherSettings {
@@ -244,109 +245,14 @@ export default class FastMather extends Plugin {
 					}
 				}
 
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						"lr",
-						"\\left\\right",
-						"\\left".length,
-					)
-				) {
-					return true;
+				for (let shortcut of SHORTCUTS) {
+					if (this.expandText(
+						view, cursorPos, shortcut.typed, shortcut.insert, shortcut.cursor_after.length, shortcut.should_trim_leading_space,
+					)) {
+						return true;
+					}
 				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						"mat",
-						"\\left[\\begin{matrix}  \\end{matrix}\\right]",
-						"\\left[\\begin{matrix} ".length,
-					)
-				) {
-					return true;
-				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						"pwise",
-						"\\left\\{\\begin{array}{ll}\\end{array}\\right.",
-						"\\left\\{\\begin{array}{ll}".length,
-					)
-				) {
-					return true;
-				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						"array",
-						"\\begin{array}{l}\\end{array}",
-						"\\begin{array}{l}".length,
-					)
-				) {
-					return true;
-				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						"align",
-						"\\begin{align}\n\n\\end{align}",
-						"\\begin{align}\n".length,
-					)
-				) {
-					return true;
-				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						"sub",
-						"_{}",
-						"_{".length,
-						true,
-					)
-				) {
-					return true;
-				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						"tothe",
-						"^{}",
-						"^{".length,
-						true,
-					)
-				) {
-					return true;
-				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						"sq",
-						"^{2} ",
-						"^{2} ".length,
-						true,
-					)
-				) {
-					return true;
-				}
-				if (
-					this.expandText(
-						view,
-						cursorPos,
-						"inv",
-						"^{-1} ",
-						"^{-1} ".length,
-						true,
-					)
-				) {
-					return true;
-				}
+
 				for (let char of "abcdefghijklmnopqrstuvwxyz") {
 					if (
 						this.expandText(
