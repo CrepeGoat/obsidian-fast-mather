@@ -246,9 +246,16 @@ export default class FastMather extends Plugin {
 				}
 
 				for (let shortcut of SHORTCUTS) {
-					if (this.expandText(
-						view, cursorPos, shortcut.typed, shortcut.insert, shortcut.cursor_after.length, shortcut.should_trim_leading_space,
-					)) {
+					if (
+						this.expandText(
+							view,
+							cursorPos,
+							shortcut.typed,
+							shortcut.insert,
+							shortcut.cursor_after.length,
+							shortcut.should_trim_leading_space,
+						)
+					) {
 						return true;
 					}
 				}

@@ -1,58 +1,58 @@
 {
-    "shortcuts": [
-        {
-                "typed": "lr",
-                "insert": "\\left\\right",
-                "cursor_after": "\\left",
-                "should_trim_leading_space": false
-        },
-        {
-                "typed": "mat",
-                "insert": "\\left[\\begin{matrix}  \\end{matrix}\\right]",
-                "cursor_after": "\\left[\\begin{matrix} ",
-                "should_trim_leading_space": false
-        },
-        {
-                "typed": "pwise",
-                "insert": "\\left\\{\\begin{array}{ll}\\end{array}\\right.",
-                "cursor_after": "\\left\\{\\begin{array}{ll}",
-                "should_trim_leading_space": false
-        },
-        {
-                "typed": "array",
-                "insert": "\\begin{array}{l}\\end{array}",
-                "cursor_after": "\\begin{array}{l}",
-                "should_trim_leading_space": false
-        },
-        {
-                "typed": "align",
-                "insert": "\\begin{align}\n\n\\end{align}",
-                "cursor_after": "\\begin{align}\n",
-                "should_trim_leading_space": false
-        },
-        {
-                "typed": "sub",
-                "insert": "_{}",
-                "cursor_after": "_{",
-                "should_trim_leading_space": true
-        },
-        {
-                "typed": "tothe",
-                "insert": "^{}",
-                "cursor_after": "^{",
-                "should_trim_leading_space": true
-        },
-        {
-                "typed": "sq",
-                "insert": "^{2} ",
-                "cursor_after": "^{2} ",
-                "should_trim_leading_space": true
-        },
-        {
-                "typed": "inv",
-                "insert": "^{-1} ",
-                "cursor_after": "^{-1} ",
-                "should_trim_leading_space": true
-        }
-    ]
+	"shortcuts": [
+		{
+			"typed": "lr",
+			"insert": "\\left\\right",
+			"cursor_after": "\\left",
+			"should_trim_leading_space": false
+		},
+		{
+			"typed": "mat",
+			"insert": "\\left[\\begin{matrix}  \\end{matrix}\\right]",
+			"cursor_after": "\\left[\\begin{matrix} ",
+			"should_trim_leading_space": false
+		},
+		{
+			"typed": "pwise",
+			"insert": "\\left\\{\\begin{array}{ll}\\end{array}\\right.",
+			"cursor_after": "\\left\\{\\begin{array}{ll}",
+			"should_trim_leading_space": false
+		},
+		{
+			"typed": "array",
+			"insert": "\\begin{array}{l}\\end{array}",
+			"cursor_after": "\\begin{array}{l}",
+			"should_trim_leading_space": false
+		},
+		{
+			"typed": "align",
+			"insert": "\\begin{align}\n\n\\end{align}",
+			"cursor_after": "\\begin{align}\n",
+			"should_trim_leading_space": false
+		},
+		{
+			"typed": "sub",
+			"insert": "_{}",
+			"cursor_after": "_{",
+			"should_trim_leading_space": true
+		},
+		{
+			"typed": "tothe",
+			"insert": "^{}",
+			"cursor_after": "^{",
+			"should_trim_leading_space": true
+		},
+		{
+			"typed": "sq",
+			"insert": "^{2} ",
+			"cursor_after": "^{2} ",
+			"should_trim_leading_space": true
+		},
+		{
+			"typed": "inv",
+			"insert": "^{-1} ",
+			"cursor_after": "^{-1} ",
+			"should_trim_leading_space": true
+		}
+	]
 }
