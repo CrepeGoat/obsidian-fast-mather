@@ -680,7 +680,7 @@
         {"command": "mathbfsfup", "argument_count": null, "text_argument": null},
         {"command": "mathbfup", "argument_count": null, "text_argument": null},
         {"command": "mathbin", "argument_count": null, "text_argument": null},
-        {"command": "mathcal", "argument_count": null, "text_argument": null},
+        {"command": "mathcal", "argument_count": 1, "text_argument": null},
         {"command": "mathchoice", "argument_count": null, "text_argument": null},
         {"command": "mathclap", "argument_count": null, "text_argument": null},
         {"command": "mathclose", "argument_count": null, "text_argument": null},

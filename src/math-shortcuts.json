@@ -6,6 +6,18 @@
 			"cursor_after": "\\left",
 			"should_trim_leading_space": false
 		},
+                {
+                        "typed": "set",
+                        "insert": "\\{\\}",
+                        "cursor_after": "\\{",
+                        "should_trim_leading_space": false
+                },
+                {
+                        "typed": "mag",
+                        "insert": "\\|\\|",
+                        "cursor_after": "\\|",
+                        "should_trim_leading_space": false
+                },
 		{
 			"typed": "mat",
 			"insert": "\\left[\\begin{matrix}  \\end{matrix}\\right]",
@@ -53,6 +65,36 @@
 			"insert": "^{-1} ",
 			"cursor_after": "^{-1} ",
 			"should_trim_leading_space": true
-		}
+		},
+                {
+                        "typed": "tpose",
+                        "insert": "^{T} ",
+                        "cursor_after": "^{T} ",
+                        "should_trim_leading_space": true
+                },
+                {
+                        "typed": "reals",
+                        "insert": "\\mathbb{R} ",
+                        "cursor_after": "\\mathbb{R} ",
+                        "should_trim_leading_space": false
+                },
+                {
+                        "typed": "nats",
+                        "insert": "\\mathbb{N} ",
+                        "cursor_after": "\\mathbb{N} ",
+                        "should_trim_leading_space": false
+                },
+                {
+                        "typed": "from",
+                        "insert": "\\leftarrow ",
+                        "cursor_after": "\\leftarrow ",
+                        "should_trim_leading_space": false
+                },
+                {
+                        "typed": "st",
+                        "insert": "\\text{ s.t. } ",
+                        "cursor_after": "\\text{ s.t. } ",
+                        "should_trim_leading_space": false
+                }
 	]
 }
